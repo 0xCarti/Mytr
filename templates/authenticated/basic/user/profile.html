@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block style %}
+    <style>
+        label {
+            display: flex;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .form-row {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 10px;
+            justify-content: space-evenly;
+        }
+
+        table {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .option {
+            width: 100px;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 7%;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            outline: none;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="login-form">
+        <div id="login-form-header">
+            <h1>{{ profile_user.name }}</h1>
+        </div>
+        <div id="login-form-body">
+            <div class="form-row">
+                <div style="display: inherit">
+                    <label style="margin-bottom: 0; padding-right: 5px" for="user-type">User Type:</label>
+                    <select name="user-type" id="user-type" class="option" disabled>
+                        <option value="{{ profile_user.user_type }}" class="option">{{ profile_user.user_type|capitalize() }}</option>
+                        {% if profile_user.user_type == 'admin' %}
+                            <option value="user" class="option">User</option>
+                        {% else %}
+                            <option value="admin" class="option">Admin</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div style="display: inherit">
+                    <label style="margin-bottom: 0; padding-right: 5px" for="activated-selection">Activated:</label>
+                    <select name="activated-selection" id="activated-selection" class="option" disabled>
+                        <option value="{{ profile_user.activated }}" class="option">{{ profile_user.activated }}</option>
+                        <option value="{{ profile_user.activated|inverse() }}" class="option">{{ profile_user.activated|inverse() }}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <label for="employee-id-input">Employee ID</label>
+                <input style="margin-bottom: 20px" type="text" id="employee-id-input" name="employee-id" required autocomplete="off" disabled value="{{ profile_user.employee_id }}">
+            </div>
+            <div class="row">
+                <label for="name-input">Name</label>
+                <input style="margin-bottom: 20px" type="text" id="name-input" name="name" required autocomplete="off" disabled value="{{ profile_user.name }}">
+            </div>
+            <div class="row">
+                <label for="email-input">Email</label>
+                <input style="margin-bottom: 20px" type="text" id="email-input" name="email" autocomplete="off" disabled value="{{ profile_user.email }}">
+            </div>
+            <div class="row">
+                <label for="phone-input">Phone Number</label>
+                <input style="margin-bottom: 20px" type="text" id="phone-input" name="phone" autocomplete="off" disabled value="{{ profile_user.phone }}">
+            </div>
+            <div class="row">
+                <label for="password-input">Change Password</label>
+                <input type="password" id="password-input" name="password" required autocomplete="off">
+            </div>
+        </div>
+        <div class="row">
+            <div class="nav-buttons" id="buttons">
+                <button class="primary-button" id="login-button" onclick="save_user()">Save</button>
+                <button class="secondary-button" id="login-button" onclick="edit_user()">Edit</button>
+                <button class="submit-button" id="login-button" onclick="delete_user()">Delete</button>
+                <button class="submit-button" id="login-button" onclick="log_out()">Log Out</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        let user_type_selection = document.getElementById('user-type')
+        let activated_selection = document.getElementById('activated-selection')
+        let employee_id_input = document.getElementById('employee-id-input')
+        let username_input = document.getElementById('name-input')
+        let email_input = document.getElementById('email-input')
+        let phone_input = document.getElementById('phone-input')
+        let pass_input = document.getElementById('password-input')
+
+
+        function save_user() {
+            let session_user_id = {{ session_user.employee_id }};
+            let profile_id = employee_id_input.value
+            if (parseInt(session_user_id) === profile_id || {{ session_user[ }}) {
+                let user_type = user_type_selection.value
+                user_type_selection.disabled = true
+                let activated = activated_selection.value
+                activated_selection.disabled = true
+                let name = username_input.value
+                username_input.disabled = true
+                let email = email_input.value
+                email_input.disabled = true
+                let phone = phone_input.value
+                phone_input.disabled = true
+
+                let pass_hash;
+                if (pass_input.value !== null) {
+                    let digest = pass_input.value
+                    let algo = CryptoJS.algo.SHA256.create()
+                    algo.update(digest, "utf-8")
+                    algo.update(CryptoJS.SHA256(name), "utf-8")
+                    pass_hash = algo.finalize().toString(CryptoJS.enc.hex)
+                }
+
+                fetch("/profile/" + profile_id, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        pass_hash: pass_hash,
+                        user_type: user_type,
+                        activated: activated
+                    }),
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        } else {
+                            return response.json()
+                        }
+                    })
+                    .then(function (json) {
+                        if (isValidUser(json)) {
+                            setUserCookies(json)
+                        } else {
+                            throw new Error("returned json object is not a valid user.")
+                        }
+                    })
+                    .catch(function (error) {
+                        return error
+                    });
+            }
+        }
+
+        function edit_user() {
+            phone_input.disabled = false
+            email_input.disabled = false
+            username_input.disabled = false
+            if (isAdmin()) {
+                activated_selection.disabled = false
+                user_type_selection.disabled = false
+            }
+        }
+
+        function delete_user() {
+            if (isAdmin()) {
+                fetch("/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        employee_id: employee_id_input.value
+                    }),
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        } else {
+                            return response.text()
+                        }
+                    })
+                    .then(function (text) {
+                        if (text === 'success') {
+                            document.location.href = '/users'
+                        } else {
+                            console.log("Delete User Error: " + text)
+                            return false
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error)
+                        return false
+                    });
+            }
+        }
+
+        function log_out(){
+            setUserCookies("")
+            console.log(getCookie('user'))
+            document.location.href = '/login'
+        }
+    </script>
+{% endblock %}

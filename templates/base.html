@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/global.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/autocom.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% block style %}{% endblock %}
+</head>
+<body>
+<div class="nav-row">
+    <a class="nav-link" id="nav-home" href="/">Home</a>
+    <a class="nav-link" id="nav-requests" href="/requests">Requests</a>
+    <a class="nav-link" id="nav-locations" href="/locations">Locations</a>
+    <a class="nav-link" id="nav-items" href="/items">Items</a>
+    <a class="nav-link" id="nav-admin" href="/admin" hidden>Admin</a>
+    <a class="nav-link" id="nav-profile" href=""><img style="width: 20px;" src="/static/images/profile-icon.png" alt=""></a>
+</div>
+<div class="main">
+    {% block main %}{% endblock %}
+</div>
+<div class="footer" style="text-align: center">
+    <p>Developed by Bryce Cotton, not affiliated with Centerplate Catering/Sodexo Live</p>
+</div>
+<script>
+    /*
+    try{
+        document.getElementById('nav-admin').hidden = !isAdmin()
+    }catch (error){
+        console.log(error)
+    }
+
+    try{
+        document.getElementById('nav-profile').href = '/profile/' + getUserCookie('employee_id')
+    }catch (error){
+        console.log(error)
+    }
+
+     */
+</script>
+{% block script %}{% endblock %}
+</body>
+</html>

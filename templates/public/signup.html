@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Request Login{% endblock %}
+{% block style %}
+    <style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #remember-me {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            margin-top: -10px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="login-form">
+        <div id="login-form-header">
+            <h1>Request Login</h1>
+        </div>
+        <div id="login-form-body">
+            <div class="row">
+                <label for="employee-id-input">Employee ID</label>
+                <input style="margin-bottom: 20px" type="text" id="employee-id-input" name="employee-id-input" required autocomplete="off">
+            </div>
+            <div class="row">
+                <label for="name-input">Name</label>
+                <input style="margin-bottom: 20px" type="text" id="name-input" name="name" required autocomplete="off">
+            </div>
+            <div class="row">
+                <label for="password-input">Password</label>
+                <input type="password" id="password-input" name="password" required autocomplete="off">
+            </div>
+        </div>
+        <div class="row">
+            <div class="nav-buttons" id="buttons">
+                <button class="primary-button" id="login-button" onclick="submit()">Submit</button>
+            </div>
+        </div>
+        <div id="login-form-footer">
+            <p style="text-align: center">Already a user?</p>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        const employee_id_input = document.getElementById('employee-id-input')
+        const name_input = document.getElementById('name-input')
+        const password_input = document.getElementById('password-input')
+
+        function submit() {
+            let employee_id = employee_id_input.value
+            let name = name_input.value
+            let digest = password_input.value
+            let algo = CryptoJS.algo.SHA256.create()
+            algo.update(digest, "utf-8")
+            algo.update(CryptoJS.SHA256(name), "utf-8")
+            let pass_hash = algo.finalize().toString(CryptoJS.enc.hex)
+
+            fetch("/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    employee_id: employee_id,
+                    name: name,
+                    pass_hash: pass_hash
+                }),
+            })
+                .then(function (response) {
+                    return response.text()
+                })
+                .then(function (text) {
+                    if (text === 'success'){
+                        document.location.href = '/login'
+                    }else{
+                        console.log("User Signup Failed: " + text)
+                    }
+                })
+                .catch(function (error) {
+                    return error
+                });
+        }
+    </script>
+{% endblock %}

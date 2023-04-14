@@ -1,0 +1,12 @@
+East Front Draft Bar:Location-00286-000053
+Front West Draft  Bar:Location-00286-000051
+13th Street Market (#1):Location-00286-000054
+18th Street Market (#4):Location-00286-000056
+Popcorn West:Location-00286-000018
+Popcorn East:Location-00286-000017
+Nachos and Wings:Location-00286-000035
+Pierogi Plus:Location-00286-000036
+Mini Doughnuts:Location-00286-000031
+Butcher Burgers & Poutine:Location-00286-000055
+Pizza:Location-00286-000019
+Grand Valley Dog:Location-00286-000034

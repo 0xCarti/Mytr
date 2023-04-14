@@ -1,0 +1,130 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+}
+
+.main {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 500px;
+    position: relative;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 0;
+    color: #555;
+}
+
+.nav-buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#global-buttons {
+    margin-top: -20px;
+    width: 50%;
+    margin-bottom: 20px;
+}
+
+button {
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.primary-button {
+    background-color: #4CAF50;
+}
+
+.primary-button:hover {
+    background-color: #3e8e41;
+}
+
+.submit-button {
+    background-color: #f44336;
+}
+
+.submit-button:hover {
+    background-color: #d32f2f;
+}
+
+.secondary-button {
+    background-color: #0577d9;
+}
+
+.secondary-button:hover {
+    background-color: #0577d9;
+}
+
+.item-col {
+    width: 250px;
+    overflow-wrap: anywhere;
+}
+
+.amount-col {
+    width: 50px;
+    text-align: center;
+}
+
+.footer {
+    text-align: center;
+    font-style: italic;
+    font-size: 12px;
+}
+
+.nav-row {
+    display: flex;
+    flex-direction: row;
+    background-color: darkgray;
+    justify-content: center;
+    position: relative;
+    width: 540px;
+    margin: 0 auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 5px 5px 0 0;
+    align-items: center;
+}
+
+a.nav-link:link {
+    text-align: center;
+    padding: 10px;
+    font-size: 18px;
+    text-decoration: inherit;
+    color: inherit;
+    cursor: auto;
+}
+
+a.nav-link:visited {
+    text-align: center;
+    padding: 10px;
+    font-size: 18px;
+    text-decoration: inherit;
+    color: inherit;
+    cursor: auto;
+}
+
+a.nav-link:hover {
+    background-color: #dddddd;
+    cursor: pointer;
+}

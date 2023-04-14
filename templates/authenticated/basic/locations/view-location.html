@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Request Login{% endblock %}
+{% block style %}
+    <style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            flex-direction: column;
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        button {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        td > a:focus {
+            outline: 0;
+        }
+
+        col {
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        #login-form-body {
+            width: 75%;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="login-form-header">
+        <h1>{{ location.name }}</h1>
+    </div>
+    <div id="login-form-body">
+        <div class="row">
+            <label for="location-input">Location Name:</label>
+            <input style="margin-bottom: 20px" type="text" id="location-input" name="location" required autocomplete="off" disabled value="{{ location.name }}">
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Size</th>
+                <th>Employee</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for transfer in history %}
+                <tr class="request_row" onclick="document.location.href = '/rqst?ids={{ transfer.id }}'">
+                    <td class="col"><a href="/rqst?ids={{ transfer.id }}">{{ transfer.id }}</a></td>
+                    <td class="col">{{ transfer.size }}</td>
+                    <td class="col"><a href="/profile/{{ transfer.employee_id }}">{{ transfer.employee_id }}</a></td>
+                    <td class="col">{{ transfer.dt_created.split(' ')[0] }}</td>
+                    <td class="col">{{ transfer.dt_created.split(' ')[1] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="nav-buttons" id="buttons">
+            <button class="primary-button" id="login-button" onclick="save_location()">Save Changes</button>
+            <button class="secondary-button" id="login-button" onclick="edit_location()">Edit Location</button>
+            <button class="submit-button" id="login-button" onclick="delete_location()">Delete Location</button>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}{% endblock %}

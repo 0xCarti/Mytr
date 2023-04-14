@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Transfer Requests ({{ request_amount }}){% endblock %}
+{% block style %}
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 100%;
+            text-align: center;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        #checkbox {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            border-radius: 30px;
+            display: flex;
+            z-index: 1;
+        }
+
+        :disabled {
+            appearance: none;
+        }
+
+        :checked {
+            background-color: dodgerblue;
+            color: dodgerblue;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 20px;
+            margin-top: -15px;
+            width: 100%;
+            justify-content: space-evenly;
+        }
+
+        .form-row {
+            color: #555;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        .option {
+            width: 100px;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 7%;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 18px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Transfer Requests</h1>
+    <div class="form-row">
+        <div>
+            <label for="view-transfer-filter">Archived:</label>
+            <select name="view-transfer-filter" id="view-transfer-filter" class="option" onchange="apply_view_transfer_filter()">
+                <option value="active" class="option">Active</option>
+                <option value="archived" class="option">Archived</option>
+                <option value="all" class="option">All</option>
+            </select>
+        </div>
+    </div>
+    <div id="col-split">
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Location</th>
+                <th>Items</th>
+                <th>Time</th>
+                <th colspan="2">Employee</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for request in transfer_requests %}
+                <tr onclick="this.children[5].children[0].checked = !this.children[5].children[0].checked" class="request_row archived" id="archived-{{ request.archived }}">
+                    <td>{{ request.dt_created.split(' ')[0] }}</td>
+                    <td>{{ request.location }}</td>
+                    <td>{{ request.size }}</td>
+                    <td>{{ request.dt_created.split(' ')[1] }}</td>
+                    <td>{{ request.employee_id }}</td>
+                    <td><input type="checkbox" id="checkbox" disabled value="{{ request.id }}"></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="nav-buttons" id="buttons">
+        <button class="primary-button" onclick="open_requests()">Open</button>
+        <button class="submit-button" onclick="merge_requests()">Merge</button>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function refresh() {
+            window.location.href = "/requests"
+        }
+
+        function apply_view_transfer_filter() {
+            const view_transfer_filter = document.getElementById('view-transfer-filter')
+            let view_filter = view_transfer_filter.value
+            let rows = document.querySelectorAll('.archived');
+            for (let i = 0; i < rows.length; i++) {
+                if (view_filter === "active") {
+                    rows[i].hidden = rows[i].id !== "archived-False";
+                } else if (view_filter === "archived") {
+                    rows[i].hidden = rows[i].id !== "archived-True";
+                } else {
+                    rows[i].hidden = false
+                }
+            }
+        }
+
+        function apply_location_filter() {
+
+        }
+
+        function open_requests() {
+            const checkboxes = document.querySelectorAll("#checkbox");
+            checkboxes.forEach(function (chkbox) {
+                if (chkbox.checked) {
+                    window.open("/request/" + chkbox.value);
+                }
+            });
+        }
+
+        function merge_requests() {
+            const all_requests = document.querySelectorAll("#checkbox");
+            let url = ""
+            all_requests.forEach(function (request) {
+                if (request.checked) {
+                    url = url + request.value + ":"
+                }
+            });
+            console.log("Selected requests: " + url)
+            window.location.href = "/merge/" + url
+        }
+
+        setInterval(refresh, 60000);
+    </script>
+{% endblock %}

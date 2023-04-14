@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block style %}
+    <style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="login-form">
+        <div id="login-form-header">
+            <h1>Login</h1>
+        </div>
+        <div id="login-form-body">
+            <div class="row">
+                <label for="employee-id-input">Username</label>
+                <input style="margin-bottom: 20px" type="text" id="employee-id-input" name="employee-id" required autocomplete="off">
+            </div>
+            <div class="row">
+                <label for="password-input">Password</label>
+                <input type="password" id="password-input" name="password" required autocomplete="off">
+            </div>
+        </div>
+        <div class="row">
+            <div class="nav-buttons" id="buttons">
+                <button class="primary-button" id="login-button" onclick="login()">Login</button>
+                <button class="secondary-button" id="request-login-button" onclick="document.location.href = '/signup'">Request Login</button>
+            </div>
+        </div>
+        <div id="login-form-footer">
+            <p style="text-align: center">Forgot password?</p>
+        </div>
+    </div>
+
+    <table class="item-table"></table>
+{% endblock %}
+{% block script %}
+    <script>
+        const employee_id_input = document.getElementById('employee-id-input')
+        const password_input = document.getElementById('password-input')
+        const remember_checkbox = document.getElementById('remember-me-selection')
+
+        function login() {
+            let employee_id = employee_id_input.value
+            let password = password_input.value
+            fetch("/login", {
+                method: "POST",
+                redirect: 'follow',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    employee_id: employee_id,
+                    password: password
+                }),
+            })
+        }
+    </script>
+{% endblock %}

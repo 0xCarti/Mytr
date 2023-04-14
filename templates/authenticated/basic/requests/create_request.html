@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% block title %}Create Request{% endblock %}
+{% block style %}
+    <style>
+        body {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #item-requested {
+            margin-bottom: 0;
+            width: 85%;
+        }
+
+        #item-requested-amount {
+            width: 15%;
+            text-align: center;
+            height: 36px;
+            border: 1px solid #ddd;
+            border-radius: 0 3px 3px 0px;
+        }
+
+        #row-inputs {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: flex-start;
+        }
+
+        button {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Transfer Request Form</h1>
+    <div class="form-row">
+        <label for="employee-id">Employee ID:</label>
+        <input type="text" id="employee-id" name="employee-id" value="={{ current_user.name }}" required autocomplete="off" disabled>
+    </div>
+    <div class="form-row">
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" placeholder="EX: 13th Street" autocomplete="off" onkeyup="suggest_location()">
+        <div class="autocom-box" id="autocom-loc">
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="item-requested">Item Requested:</label>
+        <div id="row-inputs">
+            <input type="text" id="item-requested" name="item-requested" placeholder="EX: Gingerale" onkeyup="suggest_item()">
+            <input inputmode="numeric" pattern="[0-9]*" type="number" id="item-requested-amount" name="item-requested"
+                   placeholder="0" autocomplete="off">
+        </div>
+        <div class="autocom-box" id="autocom-item">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="nav-buttons" id="buttons">
+            <button class="primary-button" id="add-request-button" onclick="add_item()">Add</button>
+            <button class="secondary-button" id="clear-button" onclick="window.location.href = '/'">Clear</button>
+            <button class="submit-button" onclick="submit_request()">Submit</button>
+        </div>
+    </div>
+
+    <table class="item-table"></table>
+{% endblock %}
+{% block script %}
+    <script>
+        const itemInput = document.getElementById("item-requested");
+        const locInput = document.getElementById("location");
+        const itemTable = document.querySelector(".item-table");
+        const addItemButton = document.getElementById("add-requests-button");
+        const viewRequestsButton = document.getElementById("view-requests-button");
+        const submitButton = document.querySelector(".submit-button");
+        const itemSuggBox = document.getElementById("autocom-item");
+        const locSuggBox = document.getElementById("autocom-loc");
+        const requestAmount = document.getElementById("item-requested-amount")
+        const clearButton = document.getElementById("clear-button")
+        const admin_nav = document.getElementById('nav-admin')
+        const items = []
+        {% for item in stock_items %}
+            items.push("{{item}}")
+        {% endfor %}
+        const locs = []
+        {% for location in stock_locations %}
+            locs.push("{{location}}")
+        {% endfor %}
+
+        function suggest_item() {
+            itemSuggBox.innerHTML = ""
+            let userData = itemInput.value;
+            let emptyArray = [];
+            if (userData) {
+                emptyArray = items.filter((data) => {
+                    if (data.toLowerCase().search(userData.toLowerCase()) !== -1) {
+                        return data
+                    }
+                });
+                showSuggestions(itemSuggBox, emptyArray);
+                let allList = itemSuggBox.querySelectorAll("li");
+                for (let i = 0; i < allList.length; i++) {
+                    allList[i].setAttribute("onclick", "select_item(this)");
+                }
+            }
+        }
+
+        function suggest_location() {
+            locSuggBox.innerHTML = ""
+            let userData = locInput.value;
+            let emptyArray = [];
+            if (userData) {
+                emptyArray = locs.filter((data) => {
+                    if (data.toLowerCase().search(userData.toLowerCase()) !== -1) {
+                        return data
+                    }
+                });
+                showSuggestions(locSuggBox, emptyArray);
+                let allList = locSuggBox.querySelectorAll("li");
+                for (let i = 0; i < allList.length; i++) {
+                    allList[i].setAttribute("onclick", "select_loc(this)");
+                }
+            } else {
+            }
+        }
+
+        function select_item(element) {
+            itemInput.value = element.textContent;
+            itemInput.textContent = "" //Make this store the SI_CODE
+            itemSuggBox.innerHTML = ""
+        }
+
+        function select_loc(element) {
+            locInput.value = element.textContent;
+            locInput.textContent = "" //Make this store the SI_CODE
+            locSuggBox.innerHTML = ""
+        }
+
+        function showSuggestions(element, list) {
+            stop_index = 10
+            if (list.length < 10) {
+                stop_index = list.length
+            }
+            for (let i = 0; i < stop_index; i++) {
+                let item = list[i]
+                const suggestion = document.createElement("li")
+                suggestion.innerHTML = item
+                element.appendChild(suggestion)
+            }
+        }
+
+        function add_item() {
+            const item = itemInput.value;
+            let amount = requestAmount.value;
+            if (amount === "") {
+                amount = "N/A"
+            }
+            if (item !== "") {
+                const row = document.createElement("tr")
+                row.innerHTML = `<td class="item-col">${item}</td><td class="amount-col">${amount}<td><button class="primary-button" id="remove-button-col">Remove</button></td>`
+                itemTable.appendChild(row)
+                itemInput.value = ""
+                requestAmount.value = ""
+            }
+        }
+
+        itemTable.addEventListener("click", function (event) {
+            if (event.target.classList.contains("primary-button")) {
+                event.target.parentNode.parentElement.remove()
+            }
+        });
+
+        function submit_request() {
+            let employee_id = document.getElementById("employee-id").value
+            if (employee_id === "") {
+                console.log("EmployeeID cannot be empty.")
+                return
+            }
+            let location = locInput.value;
+            if (location === "") {
+                console.log("Location cannot be empty.")
+                return
+            }
+            locInput.value = ""
+            let amount = requestAmount.value;
+            if (amount === "") {
+                amount = "N/A"
+            }
+            requestAmount.value = "";
+            const item_requested = document.getElementById("item-requested").value
+            let items_requested = {};
+            if (item_requested !== "") {
+                items_requested[item_requested] = amount
+                console.log("Added: " + item_requested + " - " + amount)
+            }
+            const listItems = document.querySelectorAll(".item-col");
+            const listAmounts = document.querySelectorAll(".amount-col");
+            for (let i = 0; i < listItems.length; i++) {
+                items_requested[listItems[i].textContent] = listAmounts[i].textContent
+            }
+            console.log("items_requested = " + items_requested)
+            itemTable.innerHTML = '';
+
+            fetch("/requests", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    employee_id: employee_id,
+                    location: location,
+                    items_requested: items_requested,
+                }),
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw Error(response.statusText);
+                    }
+                })
+                .then(function (data) {
+                    console.log("Returned Request Data: " + data);
+                })
+                .catch(function (error) {
+                    console.log("Returned Request Error: " + error);
+                });
+        }
+    </script>
+{% endblock %}

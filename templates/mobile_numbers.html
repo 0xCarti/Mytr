@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mobile Notification Numbers</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/global.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='/scripts/cookies.js') }}"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        td > a:focus {
+            outline: 0;
+        }
+
+        #selection-col {
+            display: flex;
+            flex-direction: column;
+            padding-top: 30px;
+            padding-left: 5px;
+            justify-content: end;
+        }
+
+        .code-col {
+            font-size: 12px;
+            padding: 0;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .name-col {
+            font-size: 14px;
+            padding: 0;
+            padding-left: 8px;
+        }
+
+        #checkbox {
+            width: 25px;
+            height: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            width: 75%;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            margin-bottom: 0;
+            width: 70%;
+            box-sizing: border-box;
+        }
+
+        #row-inputs {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+        }
+
+        .code-button {
+            width: 25%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <h1>Mobile Notification Numbers</h1>
+    <div class="form-row">
+        <label for="mobile-number">Mobile Number:</label>
+        <div id="row-inputs">
+            <input type="text" id="mobile-number" name="mobile-number" placeholder="12045731841">
+            <button class="primary-button code-button" id="send-code" onclick="send_code()">Send</button>
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="verify-number">Verification Code:</label>
+        <div id="row-inputs">
+            <input type="text" id="verify-number" name="verify-number" placeholder="Enter 4 Digit Code">
+            <button class="primary-button code-button" id="verify-code" onclick="verify_code()">Verify
+            </button>
+        </div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">Number</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for number in numbers %}
+            <tr class="request_row">
+                <td class="name-col">{{ number.number }}</td>
+                <td><input type="checkbox" id="checkbox" value="{{ number.number }}"></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="nav-buttons" id="buttons">
+        <button class="primary-button" onclick="window.location.href='/admin'">Admin Panel</button>
+        <button class="submit-button" onclick="delete_items()">Delete Numbers</button>
+    </div>
+</div>
+<script>
+    const numberEntry = document.getElementById('mobile-number')
+    const codeEntry = document.getElementById('verify-number')
+    //const password = checkPasswordCookie()
+    checkNumberCookie()
+
+    function send_code(){
+        let number = numberEntry.value
+        setNumberCookie()
+        if (number !== "") {
+            window.location.href = '/mnotifs?mode=send&number=' + number
+        }
+    }
+
+    function verify_code(){
+        let number = numberEntry.value
+        let code = codeEntry.value
+        if (number !== "") {
+            window.location.href = '/mnotifs?mode=verify&number=' + number + '&code=' + code
+        }
+    }
+
+    function add_number() {
+        let number = numberEntry.value
+        if (number !== "") {
+            window.location.href = '/mnotifs?mode=add&number=' + numberEntry.value
+        }
+    }
+
+    function delete_items() {
+        const all_items = document.querySelectorAll("#checkbox");
+        let url = ""
+        all_items.forEach(function (item) {
+            if (item.checked) {
+                url = url + item.value + ":"
+            }
+        });
+        console.log("Selected Items: " + url)
+        window.location.href = '/mnotifs?mode=delete&numbers=' + url
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block style %}
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        td > a:focus {
+            outline: 0;
+        }
+
+        .name-col {
+            font-size: 14px;
+            padding: 0;
+            padding-left: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 20px;
+            margin-top: -15px;
+            width: 100%;
+            justify-content: space-evenly;
+        }
+
+        .form-row {
+            color: #555;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        .option {
+            width: 200px;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 7%;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 18px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Users</h1>
+    <div class="form-row">
+        <div>
+            <label for="view-user-filter">View:</label>
+            <select name="view-user-filter" id="view-user-filter" class="option" onchange="apply_view_user_filter()">
+                <option value="activated" class="option">Activated Users</option>
+                <option value="requested" class="option">Requested Users</option>
+                <option value="all" class="option">All Users</option>
+            </select>
+        </div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th colspan="2">User Type</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr class="request_row activated" id="activated-{{ user.activated }}" onclick="document.location.href = '/profile/' + {{ user.employee_id }}">
+                <td class="id-col">{{ user.employee_id }}</td>
+                <td class="name-col">{{ user.name }}</td>
+                <td class="user-type-col">{{ user.user_type }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block script %}
+    <script>
+        apply_view_user_filter()
+
+        function apply_view_user_filter() {
+            const view_user_filter = document.getElementById('view-user-filter')
+            let view_filter = view_user_filter.value
+            let rows = document.querySelectorAll('.activated');
+            for (let i = 0; i < rows.length; i++) {
+                if (view_filter === "activated") {
+                    rows[i].hidden = rows[i].id !== "activated-True";
+                } else if (view_filter === "requested") {
+                    rows[i].hidden = rows[i].id !== "activated-False";
+                } else {
+                    rows[i].hidden = false
+                }
+            }
+        }
+    </script>
+{% endblock %}

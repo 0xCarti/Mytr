@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Stock Items{% endblock %}
+{% block style %}
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        td > a:focus {
+            outline: 0;
+        }
+
+        .name-col {
+            font-size: 14px;
+            padding: 0;
+            padding-left: 8px;
+        }
+
+        #checkbox {
+            width: 25px;
+            height: 25px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Stock Items - {{ stock_items|length }}</h1>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in stock_items %}
+            <tr class="request_row">
+                <td class="name-col">{{ item.name }}</td>
+                <td><input type="checkbox" id="checkbox" value="{{ item.si_code }}"></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="nav-buttons" id="buttons">
+        <button class="primary-button" onclick="add_item()">Add Item</button>
+        <button class="submit-button" onclick="delete_items()">Delete Items</button>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function add_item() {
+            let name = prompt("Item Name:", "");
+            window.location.href = "/items?mode=add&name=" + name
+        }
+
+        function delete_items() {
+            const all_items = document.querySelectorAll("#checkbox");
+            let url = ""
+            all_items.forEach(function (item) {
+                if (item.checked) {
+                    url = url + item.value + ":"
+                }
+            });
+            console.log("Selected Items: " + url)
+            window.location.href = "/items?mode=delete&ids=" + url
+        }
+    </script>
+{% endblock %}

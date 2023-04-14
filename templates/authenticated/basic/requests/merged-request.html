@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Merged Request{% endblock %}
+{% block style %}
+    <style>
+        h3 {
+            margin-top: -10px;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        label {
+            padding-right: 7px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 16px;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h5 {
+            margin: 0;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Merged Request</h1>
+    <table>
+        <thead>
+        <tr>
+            <th class="item-col">Item</th>
+            <th class="amount-col">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in requested_items %}
+            <tr class="item_row">
+                <td class="item-col">{{ item }}</td>
+                <td class="amount-col">{{ requested_items[item] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Transfer Request{% endblock %}
+{% block style %}
+    <style>
+        h3 {
+            margin-top: -10px;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        label {
+            padding-right: 7px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 16px;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h5 {
+            margin: 0;
+        }
+
+        .header-row {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div class="header-row">
+        <h5 class="date">{{ transfer_request.dt_created.split(" ")[0] }}</h5>
+        {% if transfer_request.archived %}
+            <h5 class="archived" id="archived">Archived</h5>
+        {% endif %}
+        <h5 class="time">{{ transfer_request.dt_created.split(" ")[1] }}</h5>
+    </div>
+    <h1>Transfer Request - {{ transfer_request.location }}</h1>
+    <h3>Employee - {{ transfer_request.employee_id }}</h3>
+    <table>
+        <thead>
+        <tr>
+            <th class="item-col">Item</th>
+            <th class="amount-col">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in requested_items %}
+            <tr class="item_row">
+                <td class="item-col">{{ item }}</td>
+                <td class="amount-col">{{ requested_items[item] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="nav-buttons" id="buttons">
+        {% if not transfer_request.archived %}
+            <button onclick="remove_request()" class="submit-button" id="delete_button">Remove Request</button>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function remove_request() {
+            fetch("/requests", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    employee_id: employee_id,
+                    location: location,
+                    items_requested: items_requested,
+                }),
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw Error(response.statusText);
+                    }
+                })
+                .then(function (data) {
+                    console.log("Returned Request Data: " + data);
+                })
+                .catch(function (error) {
+                    console.log("Returned Request Error: " + error);
+                });
+        }
+    </script>
+{% endblock %}
