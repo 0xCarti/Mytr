@@ -102,6 +102,9 @@
             if (response.redirected) {
                 setCookie('employee_id', employee_id, 31)
                 window.location.href = response.url
+            }else{
+                console.log('response was not redirected')
+                console.log(response.text())
             }
         })
     }

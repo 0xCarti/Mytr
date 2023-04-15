@@ -265,7 +265,7 @@ def database():
         user.set_password('Snotsuh1')
         db.session.add(user)
         db.session.commit()
-        redirect('/login')
+        return redirect('/login')
 
 
 @app.route('/admin', methods=['POST', 'GET'])
@@ -302,8 +302,10 @@ def login():
 
     if flask.request.method == 'POST':
         employee_id = flask.request.json['employee_id']
+        print(employee_id)
         user = UserModel.query.filter_by(employee_id=int(employee_id)).first()
         if user and user.active and user.check_password(flask.request.json['password']):
+            print(user)
             login_user(user)
             return redirect(f'/profile/{employee_id}')
         else:
