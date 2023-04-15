@@ -11,7 +11,7 @@ from instance.models import db, login, UserModel, ItemsModel, LocationsModel, Re
 
 verification_codes = {}
 app = Flask(__name__)
-app.secret_key = secrets.token_urlsafe(16)
+app.secret_key = 'Smkc01002dazzxqn3'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
