@@ -12,7 +12,7 @@
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
-            border-radius: 3px 0px 0px 3px;
+            border-radius: 3px 0 0 3px;
             border: 1px solid #ddd;
             margin-bottom: 20px;
             font-size: 16px;
@@ -98,20 +98,20 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th>Size</th>
                 <th>Employee</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th>Archived</th>
             </tr>
             </thead>
             <tbody>
             {% for transfer in history %}
-                <tr class="request_row" onclick="document.location.href = '/rqst?ids={{ transfer.id }}'">
-                    <td class="col"><a href="/rqst?ids={{ transfer.id }}">{{ transfer.id }}</a></td>
-                    <td class="col">{{ transfer.size }}</td>
+                <tr class="request_row">
+                    <td class="col"><a href="/request/{{ transfer.request_id }}">{{ transfer.request_id }}</a></td>
                     <td class="col"><a href="/profile/{{ transfer.employee_id }}">{{ transfer.employee_id }}</a></td>
                     <td class="col">{{ transfer.dt_created.split(' ')[0] }}</td>
                     <td class="col">{{ transfer.dt_created.split(' ')[1] }}</td>
+                    <td class="col">{{ transfer.archived }}</td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -99,20 +99,18 @@
             <tr>
                 <th>Date</th>
                 <th>Location</th>
-                <th>Items</th>
                 <th>Time</th>
                 <th colspan="2">Employee</th>
             </tr>
             </thead>
             <tbody>
             {% for request in transfer_requests %}
-                <tr onclick="this.children[5].children[0].checked = !this.children[5].children[0].checked" class="request_row archived" id="archived-{{ request.archived }}">
+                <tr onclick="this.children[4].children[0].checked = !this.children[4].children[0].checked" class="request_row archived" id="archived-{{ request.archived }}">
                     <td>{{ request.dt_created.split(' ')[0] }}</td>
-                    <td>{{ request.location }}</td>
-                    <td>{{ request.size }}</td>
+                    <td>{{ request.location_id|get_location_name() }}</td>
                     <td>{{ request.dt_created.split(' ')[1] }}</td>
                     <td>{{ request.employee_id }}</td>
-                    <td><input type="checkbox" id="checkbox" disabled value="{{ request.id }}"></td>
+                    <td><input style="appearance: none;" type="checkbox" id="checkbox" value="{{ request.request_id }}" onclick="this.checked = !this.checked"></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -125,6 +123,8 @@
 {% endblock %}
 {% block script %}
     <script>
+        apply_view_transfer_filter()
+
         function refresh() {
             window.location.href = "/requests"
         }
@@ -152,7 +152,8 @@
             const checkboxes = document.querySelectorAll("#checkbox");
             checkboxes.forEach(function (chkbox) {
                 if (chkbox.checked) {
-                    window.open("/request/" + chkbox.value);
+                    window.location.href = "/request/" + chkbox.value
+                    return
                 }
             });
         }

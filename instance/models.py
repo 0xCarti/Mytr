@@ -8,6 +8,8 @@ from flask_login import LoginManager
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
+from data_handler.pdf_handler import pdf_handler
+
 login = LoginManager()
 db = SQLAlchemy()
 
@@ -22,7 +24,7 @@ class UserModel(UserMixin, db.Model):
     name = db.Column(db.String(100), unique=True)
     password_hash = db.Column(db.String(), unique=False)
     user_type = db.Column(db.String(), default='user', unique=False)
-    active = db.Column(db.Integer, default=0, unique=False)
+    active = db.Column(db.Boolean, default=False, unique=False)
     transfer_request_history = db.Column(db.String(), default='', unique=False)
     last_login = db.Column(db.String(80), unique=False)
 
@@ -64,7 +66,7 @@ class RequestsModel(db.Model):
     employee_id = db.Column(db.Integer)
     location_id = db.Column(db.Integer)
     requested_items = db.Column(db.String(), default='')
-    archived = db.Column(db.Integer, default=0)
+    archived = db.Column(db.Boolean, default=False)
     dt_created = db.Column(db.String(80))
 
     def get_id(self):
@@ -74,18 +76,19 @@ class RequestsModel(db.Model):
 class LocationsModel(db.Model):
     __tablename__ = 'locations'
 
-    location_id = db.Column(db.Integer, unique=True, primary_key=True)
+    location_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
     name = db.Column(db.String(80), unique=True)
     transfer_request_history = db.Column(db.String(), default='')
 
     def get_id(self):
         return self.location_id
 
+
 class ItemsModel(db.Model):
     __tablename__ = 'items'
 
-    item_id = db.Column(db.Integer, unique=True, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
+    item_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(80), unique=False)
     transfer_request_history = db.Column(db.String(), default='')
 
     def get_id(self):

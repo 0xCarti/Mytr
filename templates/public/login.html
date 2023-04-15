@@ -1,6 +1,13 @@
-{% extends 'base.html' %}
-{% block title %}Login{% endblock %}
-{% block style %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/global.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/autocom.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='/scripts/cookies.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
     <style>
         label {
             display: block;
@@ -12,7 +19,7 @@
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
-            border-radius: 3px 0px 0px 3px;
+            border-radius: 3px 0 0 3px;
             border: 1px solid #ddd;
             margin-bottom: 20px;
             font-size: 16px;
@@ -43,8 +50,9 @@
             margin-right: 5px;
         }
     </style>
-{% endblock %}
-{% block main %}
+</head>
+<body>
+<div class="main">
     <div id="login-form">
         <div id="login-form-header">
             <h1>Login</h1>
@@ -71,27 +79,32 @@
     </div>
 
     <table class="item-table"></table>
-{% endblock %}
-{% block script %}
-    <script>
-        const employee_id_input = document.getElementById('employee-id-input')
-        const password_input = document.getElementById('password-input')
-        const remember_checkbox = document.getElementById('remember-me-selection')
+</div>
+<script>
+    const employee_id_input = document.getElementById('employee-id-input')
+    const password_input = document.getElementById('password-input')
+    const remember_checkbox = document.getElementById('remember-me-selection')
 
-        function login() {
-            let employee_id = employee_id_input.value
-            let password = password_input.value
-            fetch("/login", {
-                method: "POST",
-                redirect: 'follow',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    employee_id: employee_id,
-                    password: password
-                }),
-            })
-        }
-    </script>
-{% endblock %}
+    function login() {
+        let employee_id = employee_id_input.value
+        let password = password_input.value
+        fetch("/login", {
+            method: "POST",
+            redirect: 'follow',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                employee_id: employee_id,
+                password: password
+            }),
+        }).then((response) => {
+            if (response.redirected) {
+                setCookie('employee_id', employee_id, 31)
+                window.location.href = response.url
+            }
+        })
+    }
+</script>
+</body>
+</html>

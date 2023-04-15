@@ -30,12 +30,11 @@
         .form-row {
             color: #555;
             font-size: 16px;
-            padding-right: 10px;
             box-sizing: border-box;
             display: flex;
             flex-direction: row;
             margin-bottom: 10px;
-            justify-content: space-evenly;
+            justify-content: space-between;
         }
 
         table {
@@ -71,7 +70,7 @@
     </style>
 {% endblock %}
 {% block main %}
-    <div id="login-form">
+    <div id="login-form" style="width: 400px;">
         <div id="login-form-header">
             <h1>{{ profile_user.name }}</h1>
         </div>
@@ -91,8 +90,8 @@
                 <div style="display: inherit">
                     <label style="margin-bottom: 0; padding-right: 5px" for="activated-selection">Activated:</label>
                     <select name="activated-selection" id="activated-selection" class="option" disabled>
-                        <option value="{{ profile_user.activated }}" class="option">{{ profile_user.activated }}</option>
-                        <option value="{{ profile_user.activated|inverse() }}" class="option">{{ profile_user.activated|inverse() }}</option>
+                        <option value="{{ profile_user.active}}" class="option">{{ profile_user.active }}</option>
+                        <option value="{{ profile_user.active|inverse() }}" class="option">{{ profile_user.active|inverse() }}</option>
                     </select>
                 </div>
             </div>
@@ -139,9 +138,8 @@
 
 
         function save_user() {
-            let session_user_id = {{ session_user.employee_id }};
             let profile_id = employee_id_input.value
-            if (parseInt(session_user_id) === profile_id || {{ session_user[ }}) {
+            if ({{ session_user.employee_id }} === parseInt(employee_id_input.value) || '{{ session_user.user_type }}' === 'admin') {
                 let user_type = user_type_selection.value
                 user_type_selection.disabled = true
                 let activated = activated_selection.value
@@ -152,15 +150,8 @@
                 email_input.disabled = true
                 let phone = phone_input.value
                 phone_input.disabled = true
+                let password = pass_input.value;
 
-                let pass_hash;
-                if (pass_input.value !== null) {
-                    let digest = pass_input.value
-                    let algo = CryptoJS.algo.SHA256.create()
-                    algo.update(digest, "utf-8")
-                    algo.update(CryptoJS.SHA256(name), "utf-8")
-                    pass_hash = algo.finalize().toString(CryptoJS.enc.hex)
-                }
 
                 fetch("/profile/" + profile_id, {
                     method: "POST",
@@ -171,7 +162,7 @@
                         name: name,
                         email: email,
                         phone: phone,
-                        pass_hash: pass_hash,
+                        password: password,
                         user_type: user_type,
                         activated: activated
                     }),
@@ -179,18 +170,10 @@
                     .then(function (response) {
                         if (!response.ok) {
                             throw Error(response.statusText);
-                        } else {
-                            return response.json()
-                        }
-                    })
-                    .then(function (json) {
-                        if (isValidUser(json)) {
-                            setUserCookies(json)
-                        } else {
-                            throw new Error("returned json object is not a valid user.")
                         }
                     })
                     .catch(function (error) {
+                        console.log(error)
                         return error
                     });
             }
@@ -200,14 +183,14 @@
             phone_input.disabled = false
             email_input.disabled = false
             username_input.disabled = false
-            if (isAdmin()) {
+            if ('{{ session_user.user_type }}' === 'admin') {
                 activated_selection.disabled = false
                 user_type_selection.disabled = false
             }
         }
 
         function delete_user() {
-            if (isAdmin()) {
+            if ('{{ session_user.user_type }}' === 'admin') {
                 fetch("/users", {
                     method: "POST",
                     headers: {
@@ -218,31 +201,19 @@
                     }),
                 })
                     .then(function (response) {
-                        if (!response.ok) {
-                            throw Error(response.statusText);
-                        } else {
-                            return response.text()
-                        }
-                    })
-                    .then(function (text) {
-                        if (text === 'success') {
-                            document.location.href = '/users'
-                        } else {
-                            console.log("Delete User Error: " + text)
-                            return false
+                        if (response.redirected) {
+                            window.location.href = response.url
                         }
                     })
                     .catch(function (error) {
                         console.log(error)
-                        return false
+                        return error
                     });
             }
         }
 
-        function log_out(){
-            setUserCookies("")
-            console.log(getCookie('user'))
-            document.location.href = '/login'
+        function log_out() {
+            document.location.href = '/logout'
         }
     </script>
 {% endblock %}

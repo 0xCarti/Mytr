@@ -1,17 +1,17 @@
 import json
+import secrets
 from datetime import datetime
 
 import flask
 from flask import Flask, redirect, render_template, url_for
 from flask_login import login_required, current_user, login_user, logout_user
 
-import database.models.stock_items as si
-import database.models.stock_locations as sl
-from database.models.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel
+from data_handler.pdf_handler import pdf_handler
+from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel
 
 verification_codes = {}
 app = Flask(__name__)
-app.secret_key = 'brycecotton'
+app.secret_key = secrets.token_urlsafe(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
@@ -36,12 +36,12 @@ def requests():
         # get all the data from the transfer
         employee_id = flask.request.json['employee_id']
         location = flask.request.json['location']
-        requested_items = flask.request.json['requested_items']
+        requested_items = flask.request.json['items_requested']
         # create the transfer and add it to the db
-        transfer = RequestsModel(employee_id=employee_id, location_id=location, items_requested=json.dumps(requested_items), dt_created=datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        location = LocationsModel.query.filter_by(name=location).first()
+        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items), dt_created=datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
         db.session.add(transfer)
         # update location with transfer ID
-        location = LocationsModel.query.filter_by(name=location).first()
         if location:
             history = location.transfer_request_history
             history = history + f'{transfer.request_id}:'
@@ -52,7 +52,7 @@ def requests():
             item = ItemsModel.query.filter_by(name=item_name).first()
             if item:
                 history = item.transfer_request_history
-                history = history + f'{transfer.id}:'
+                history = history + f'{transfer.request_id}:'
                 item.transfer_request_history = history
                 db.session.add(item)
         db.session.commit()
@@ -67,11 +67,18 @@ def requests():
         return render_template('authenticated/basic/requests/transfer-requests.html', transfer_requests=transfer_requests, locations=locations)
 
 
-@app.route('/request/<id>', methods=['POST', 'GET'])
+@app.route('/request/<request_id>', methods=['POST', 'GET'])
 @login_required
 def request(request_id: int):
-    if flask.request.method == 'POST':
-        pass  # delete the request?
+    if flask.request.method == 'POST' and current_user.user_type == 'admin':
+        request = RequestsModel.query.filter_by(request_id=request_id).first()
+        if request:
+            request.archived = True
+            db.session.add(request)
+            db.session.commit()
+            return redirect('/requests/')
+        else:
+            return 'fail'
     elif flask.request.method == 'GET':
         transfer_request = RequestsModel.query.filter_by(request_id=request_id).first()
         requested_items = json.loads(transfer_request.requested_items)
@@ -124,7 +131,7 @@ def items():
 
 @app.route('/item/<item_id>', methods=['POST', 'GET'])
 @login_required
-def location(item_id: int):
+def item(item_id: int):
     if flask.request.method == 'POST':
         pass
     elif flask.request.method == 'GET':
@@ -146,10 +153,11 @@ def locations():
     if flask.request.method == 'POST':
         mode = flask.request.args.get('mode')
         if mode == 'add' and current_user.user_type == 'admin':
-            name = flask.request.args.get('name')
+            name = flask.request.json['name']
             stock_location = LocationsModel(name=name)
             db.session.add(stock_location)
             db.session.commit()
+            return redirect('/locations')
         elif mode == 'delete' and current_user.user_type == 'admin':
             location_ids = flask.request.args.get('ids').removesuffix(":").split(':')
             for location_id in location_ids:
@@ -164,18 +172,13 @@ def locations():
 @app.route('/location/<location_id>', methods=['POST', 'GET'])
 @login_required
 def location(location_id: int):
-    if flask.request.method == 'POST':
-        pass
+    if flask.request.method == 'POST' and current_user.user_type == 'admin':
+        pass # delete the location?
     elif flask.request.method == 'GET':
         location = LocationsModel.query.filter_by(location_id=location_id).first()
         if location:
-            request_id_history = location.transfer_request_history.removesuffix(':').split(':')
-            request_history = []
-            for request_id in request_id_history:
-                request = RequestsModel.query.filter_by(request_id=request_id).first()
-                if request:
-                    request_history.append(request)
-            return render_template('authenticated/basic/locations/view-location.html', location=location, history=request_history)
+            transfers = RequestsModel.query.filter_by(location_id=location.location_id)
+            return render_template('authenticated/basic/locations/view-location.html', location=location, history=transfers)
     return render_template('public/404.html')
 
 
@@ -188,9 +191,9 @@ def users():
         if user:
             db.session.delete(user)
             db.session.commit()
-            return redirect('users')
+            return redirect('/users')
         else:
-            return 'fail' # make the page display a note for the user, so they know tiw as a fail
+            return 'fail'  # make the page display a note for the user, so they know tiw as a fail
     elif flask.request.method == 'GET' and current_user.user_type == 'admin':
         users = UserModel.query.all()
         return render_template('authenticated/basic/user/users.html', users=users)
@@ -198,9 +201,9 @@ def users():
 
 @app.route('/profile/<employee_id>', methods=['POST', 'GET'])
 @login_required
-def profile(employee_id: int):
+def profile(employee_id):
     if flask.request.method == 'POST':
-        if current_user.user_type == 'admin' or current_user.employee_id == employee_id:
+        if current_user.user_type == 'admin' or current_user.get_id() == int(employee_id):
             name = flask.request.json['name']
             email = flask.request.json['email']
             phone = flask.request.json['phone']
@@ -213,41 +216,65 @@ def profile(employee_id: int):
                 user.email = email
                 user.phone = phone
                 user.user_type = user_type
-                user.activated = activated
+                user.active = activated
                 if password != '':
                     user.set_password(password)
                 db.session.add(user)
                 db.session.commit()
                 return redirect(f'/profile/{employee_id}')
-        return 'fail' # make the page display a note for the user, so they know tiw as a fail
+        return 'fail'  # make the page display a note for the user, so they know tiw as a fail
     elif flask.request.method == 'GET':
-        user = UserModel.query.filter_by(employee_id=employee_id).first()
-        if user:
-            return render_template('authenticated/basic/user/profile.html', user=user)
+        if current_user.user_type == 'admin' or current_user.get_id() == int(employee_id):
+            profile_user = UserModel.query.filter_by(employee_id=employee_id).first()
+            if profile_user:
+                return render_template('authenticated/basic/user/profile.html', profile_user=profile_user, session_user=current_user)
         return render_template('public/404.html')
 
 
-@app.route('/db', methods=['POST', 'GET'])
-@login_required
-def db():
+@app.route('/database', methods=['POST', 'GET'])
+def database():
     mode = flask.request.args.get('func')
     if mode == 'init-items':
-        si.import_all_stock_items()
+        pdfh = pdf_handler('data_handler/stock_items_summary.pdf')
+        items = pdfh.import_venue_stock_items()
+        for item in items:
+            if not item.startswith('Delete'):
+                item = ItemsModel(name=item)
+                db.session.add(item)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
         return redirect(url_for('admin'))
     if mode == 'init-locs':
-        sl.import_all_locations()
+        with open("data_handler/locations_data.txt") as file:
+            lines = file.readlines()
+            lines = [x.strip() for x in lines]
+            for line in lines:
+                location = LocationsModel(name=line.split(':')[0])
+                db.session.add(location)
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
         return redirect(url_for('admin'))
     if mode == 'init-dev-users':
+        print('init dev')
         user = UserModel(employee_id=1061, name='Bryce Cotton', user_type='admin', active=1)
         user.set_password('Snotsuh1')
         db.session.add(user)
         db.session.commit()
+        redirect('/login')
 
 
 @app.route('/admin', methods=['POST', 'GET'])
 @login_required
 def admin():
-    return render_template('authenticated/admin/admin.html')
+    if current_user.user_type == 'admin':
+        return render_template('authenticated/admin/admin.html')
+    else:
+        return render_template('public/404.html')
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -256,13 +283,14 @@ def signup():
         employee_id = flask.request.json['employee_id']
         name = flask.request.json['name']
         password = flask.request.json['password']
-        if UserModel.query.filter_by(employee_id=employee_id):
+        user = UserModel.query.filter_by(employee_id=employee_id).first()
+        if user:
             return 'Employee ID already Present'
         user = UserModel(employee_id=employee_id, name=name)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        return 'success' # possibly make this redirect to apage that lets the user know that it was a success
+        return redirect('/login')
     else:
         return render_template('public/signup.html')
 
@@ -270,16 +298,16 @@ def signup():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if current_user.is_authenticated:
-        return redirect('/profile')
+        return redirect(f'/profile/{current_user.employee_id}')
 
     if flask.request.method == 'POST':
         employee_id = flask.request.json['employee_id']
         user = UserModel.query.filter_by(employee_id=int(employee_id)).first()
-        if user and user.check_password(flask.request.json['password']):
+        if user and user.active and user.check_password(flask.request.json['password']):
             login_user(user)
             return redirect(f'/profile/{employee_id}')
         else:
-            return 'fail' # make the page display a note for the user, so they know tiw as a fail
+            return 'Invalid User or Credentials.'  # make the page display a note for the user, so they know tiw as a fail
 
     return render_template('public/login.html')
 
@@ -293,6 +321,22 @@ def logout():
 @app.template_filter('inverse')
 def inverse(obj):
     return not (bool(obj))
+
+
+@app.template_filter('is_hidden')
+def is_hidden(obj):
+    if obj.user_type == 'user':
+        return 'hidden'
+    else:
+        return ''
+
+@app.template_filter('get_location_name')
+def get_location_name(location_id):
+    location = LocationsModel.query.filter_by(location_id=location_id).first()
+    if location:
+        return location.name
+    else:
+        return ''
 
 
 if __name__ == '__main__':

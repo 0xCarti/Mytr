@@ -61,8 +61,8 @@
         {% endif %}
         <h5 class="time">{{ transfer_request.dt_created.split(" ")[1] }}</h5>
     </div>
-    <h1>Transfer Request - {{ transfer_request.location }}</h1>
-    <h3>Employee - {{ transfer_request.employee_id }}</h3>
+    <h1>Transfer Request - <a href="/location/{{ transfer_request.location_id }}">{{ transfer_request.location_id|get_location_name() }}</a></h1>
+    <h3>Employee - <a href="/profile/{{ transfer_request.employee_id }}">{{ transfer_request.employee_id }}</a></h3>
     <table>
         <thead>
         <tr>
@@ -88,27 +88,20 @@
 {% block script %}
     <script>
         function remove_request() {
-            fetch("/requests", {
+            fetch("/request/{{ transfer_request.request_id }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    employee_id: employee_id,
-                    location: location,
-                    items_requested: items_requested,
-                }),
             })
                 .then(function (response) {
-                    if (!response.ok) {
-                        throw Error(response.statusText);
+                    if (response.redirected) {
+                        window.location.href = response.url
                     }
-                })
-                .then(function (data) {
-                    console.log("Returned Request Data: " + data);
                 })
                 .catch(function (error) {
                     console.log("Returned Request Error: " + error);
+                    return error
                 });
         }
     </script>

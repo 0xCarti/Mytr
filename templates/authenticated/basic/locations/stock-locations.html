@@ -64,7 +64,7 @@
         </thead>
         <tbody>
         {% for location in stock_locations %}
-            <tr class="request_row" onclick="view_location({{ location.si_code }})">
+            <tr class="request_row" onclick="window.location.href = '/location/{{ location.location_id }}'">
                 <td class="name-col">{{ location.name }}</td>
             </tr>
         {% endfor %}
@@ -78,11 +78,24 @@
     <script>
         function add_location() {
             let name = prompt("Location Name:", "");
-            window.location.href = "/locations?mode=add&name=" + name
-        }
-
-        function view_location(si_code) {
-            window.location.href = "/location/" + si_code
+            fetch("/locations?mode=add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name
+                }),
+            })
+                .then(function (response) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                })
+                .catch(function (error) {
+                    console.log("Returned Request Error: " + error);
+                    return error
+                });
         }
     </script>
 {% endblock %}

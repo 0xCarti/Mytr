@@ -1,6 +1,12 @@
-{% extends 'base.html' %}
-{% block title %}Request Login{% endblock %}
-{% block style %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/global.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/autocom.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
     <style>
         label {
             display: block;
@@ -60,8 +66,9 @@
             margin-top: -10px;
         }
     </style>
-{% endblock %}
-{% block main %}
+</head>
+<body>
+<div class="main">
     <div id="login-form">
         <div id="login-form-header">
             <h1>Request Login</h1>
@@ -89,46 +96,39 @@
             <p style="text-align: center">Already a user?</p>
         </div>
     </div>
-{% endblock %}
-{% block script %}
-    <script>
-        const employee_id_input = document.getElementById('employee-id-input')
-        const name_input = document.getElementById('name-input')
-        const password_input = document.getElementById('password-input')
+</div>
+<script>
+    const employee_id_input = document.getElementById('employee-id-input')
+    const name_input = document.getElementById('name-input')
+    const password_input = document.getElementById('password-input')
 
-        function submit() {
-            let employee_id = employee_id_input.value
-            let name = name_input.value
-            let digest = password_input.value
-            let algo = CryptoJS.algo.SHA256.create()
-            algo.update(digest, "utf-8")
-            algo.update(CryptoJS.SHA256(name), "utf-8")
-            let pass_hash = algo.finalize().toString(CryptoJS.enc.hex)
+    function submit() {
+        let employee_id = employee_id_input.value
+        let name = name_input.value
+        let password = password_input.value
 
-            fetch("/signup", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    employee_id: employee_id,
-                    name: name,
-                    pass_hash: pass_hash
-                }),
+        fetch("/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                employee_id: employee_id,
+                name: name,
+                password: password
+            }),
+        })
+            .then(function (response) {
+                if (response.redirected) {
+                    document.location.href = response.url
+                } else {
+                    alert('Talk to bryce, something failed here.')
+                }
             })
-                .then(function (response) {
-                    return response.text()
-                })
-                .then(function (text) {
-                    if (text === 'success'){
-                        document.location.href = '/login'
-                    }else{
-                        console.log("User Signup Failed: " + text)
-                    }
-                })
-                .catch(function (error) {
-                    return error
-                });
-        }
-    </script>
-{% endblock %}
+            .catch(function (error) {
+                return error
+            });
+    }
+</script>
+</body>
+</html>

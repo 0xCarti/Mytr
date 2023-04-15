@@ -84,7 +84,7 @@
     <h1>Transfer Request Form</h1>
     <div class="form-row">
         <label for="employee-id">Employee ID:</label>
-        <input type="text" id="employee-id" name="employee-id" value="={{ current_user.name }}" required autocomplete="off" disabled>
+        <input type="text" id="employee-id" name="employee-id" value="{{ current_user.employee_id }}" required autocomplete="off" disabled>
     </div>
     <div class="form-row">
         <label for="location">Location:</label>
@@ -127,11 +127,11 @@
         const admin_nav = document.getElementById('nav-admin')
         const items = []
         {% for item in stock_items %}
-            items.push("{{item}}")
+            items.push("{{item.name}}")
         {% endfor %}
         const locs = []
         {% for location in stock_locations %}
-            locs.push("{{location}}")
+            locs.push("{{location.name}}")
         {% endfor %}
 
         function suggest_item() {

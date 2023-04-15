@@ -95,7 +95,7 @@
         </thead>
         <tbody>
         {% for user in users %}
-            <tr class="request_row activated" id="activated-{{ user.activated }}" onclick="document.location.href = '/profile/' + {{ user.employee_id }}">
+            <tr class="request_row activated" id="activated-{{ user.active }}" onclick="document.location.href = '/profile/' + {{ user.employee_id }}">
                 <td class="id-col">{{ user.employee_id }}</td>
                 <td class="name-col">{{ user.name }}</td>
                 <td class="user-type-col">{{ user.user_type }}</td>
