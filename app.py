@@ -173,7 +173,7 @@ def locations():
 @login_required
 def location(location_id: int):
     if flask.request.method == 'POST' and current_user.user_type == 'admin':
-        pass # delete the location?
+        pass  # delete the location?
     elif flask.request.method == 'GET':
         location = LocationsModel.query.filter_by(location_id=location_id).first()
         if location:
@@ -330,6 +330,7 @@ def is_hidden(obj):
     else:
         return ''
 
+
 @app.template_filter('get_location_name')
 def get_location_name(location_id):
     location = LocationsModel.query.filter_by(location_id=location_id).first()
@@ -337,6 +338,12 @@ def get_location_name(location_id):
         return location.name
     else:
         return ''
+
+
+@app.after_request
+def apply_hsts(response):
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
 
 
 if __name__ == '__main__':
