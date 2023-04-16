@@ -96,7 +96,7 @@ button {
 .nav-row {
     display: flex;
     flex-direction: row;
-    background-color: darkgray;
+    background-color: #56a4e8;
     justify-content: center;
     position: relative;
     width: 540px;
@@ -127,4 +127,67 @@ a.nav-link:visited {
 a.nav-link:hover {
     background-color: #dddddd;
     cursor: pointer;
+}
+
+a, a:visited {
+    text-decoration: none;
+    color: #0577d9;
+
+}
+
+@media only screen
+and (device-width: 414px)
+and (device-height: 896px)
+and (-webkit-device-pixel-ratio: 2) {
+    html {
+        display: flex;
+        justify-content: center;
+    }
+
+    .main {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 370px;
+        position: relative;
+    }
+
+    .nav-row {
+        display: flex;
+        flex-direction: row;
+        background-color: #56a4e8;
+        justify-content: center;
+        position: relative;
+        width: 410px;
+        margin: 0 auto;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        border-radius: 5px 5px 0 0;
+        align-items: center;
+    }
+
+    a.nav-link:link {
+        text-align: center;
+        padding: 10px;
+        font-size: 15px;
+        text-decoration: inherit;
+        color: inherit;
+        cursor: auto;
+    }
+
+    a.nav-link:visited {
+        text-align: center;
+        padding: 5px;
+        font-size: 15px;
+        text-decoration: inherit;
+        color: inherit;
+        cursor: auto;
+    }
+
+    #login-form {
+        width: 370px;
+    }
 }

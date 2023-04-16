@@ -70,7 +70,7 @@
     </style>
 {% endblock %}
 {% block main %}
-    <div id="login-form" style="width: 400px;">
+    <div id="login-form">
         <div id="login-form-header">
             <h1>{{ profile_user.name }}</h1>
         </div>
@@ -90,7 +90,7 @@
                 <div style="display: inherit">
                     <label style="margin-bottom: 0; padding-right: 5px" for="activated-selection">Activated:</label>
                     <select name="activated-selection" id="activated-selection" class="option" disabled>
-                        <option value="{{ profile_user.active}}" class="option">{{ profile_user.active }}</option>
+                        <option value="{{ profile_user.active }}" class="option">{{ profile_user.active }}</option>
                         <option value="{{ profile_user.active|inverse() }}" class="option">{{ profile_user.active|inverse() }}</option>
                     </select>
                 </div>
@@ -139,7 +139,10 @@
 
         function save_user() {
             let profile_id = employee_id_input.value
-            if ({{ session_user.employee_id }} === parseInt(employee_id_input.value) || '{{ session_user.user_type }}' === 'admin') {
+            if ({{ session_user.employee_id }} ===
+            parseInt(employee_id_input.value) || '{{ session_user.user_type }}' === 'admin'
+        )
+            {
                 let user_type = user_type_selection.value
                 user_type_selection.disabled = true
                 let activated = activated_selection.value

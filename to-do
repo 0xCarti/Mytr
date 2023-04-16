@@ -1,4 +1,3 @@
-- fix merge
 - implement a way for users to add, verify, and delete a mobile number and make it so that mobile number can be verified but have push notifs disabled.
 - implement item page
 - change view item page so it displays a certain amount of items per page, give it a search bar

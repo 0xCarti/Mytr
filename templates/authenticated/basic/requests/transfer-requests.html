@@ -66,7 +66,7 @@
         }
 
         .option {
-            width: 100px;
+            width: 110px;
             font-size: 18px;
             padding: 5px;
             border-radius: 7%;
@@ -85,7 +85,7 @@
     <h1>Transfer Requests</h1>
     <div class="form-row">
         <div>
-            <label for="view-transfer-filter">Archived:</label>
+            <label for="view-transfer-filter">View:</label>
             <select name="view-transfer-filter" id="view-transfer-filter" class="option" onchange="apply_view_transfer_filter()">
                 <option value="active" class="option">Active</option>
                 <option value="archived" class="option">Archived</option>
@@ -107,9 +107,9 @@
             {% for request in transfer_requests %}
                 <tr onclick="this.children[4].children[0].checked = !this.children[4].children[0].checked" class="request_row archived" id="archived-{{ request.archived }}">
                     <td>{{ request.dt_created.split(' ')[0] }}</td>
-                    <td>{{ request.location_id|get_location_name() }}</td>
+                    <td><a href="/location/{{ request.location_id }}">{{ request.location_id|get_location_name() }}</a></td>
                     <td>{{ request.dt_created.split(' ')[1] }}</td>
-                    <td>{{ request.employee_id }}</td>
+                    <td><a href="/profile/{{ request.employee_id }}">{{ request.employee_id }}</a></td>
                     <td><input style="appearance: none;" type="checkbox" id="checkbox" value="{{ request.request_id }}" onclick="this.checked = !this.checked"></td>
                 </tr>
             {% endfor %}
@@ -134,11 +134,17 @@
             let view_filter = view_transfer_filter.value
             let rows = document.querySelectorAll('.archived');
             for (let i = 0; i < rows.length; i++) {
+                rows[i].style.backgroundColor = ''
                 if (view_filter === "active") {
                     rows[i].hidden = rows[i].id !== "archived-False";
                 } else if (view_filter === "archived") {
                     rows[i].hidden = rows[i].id !== "archived-True";
                 } else {
+                    if (rows[i].id === "archived-False"){
+                        rows[i].style.backgroundColor = 'darkseagreen'
+                    }else{
+                        rows[i].style.backgroundColor = 'indianred'
+                    }
                     rows[i].hidden = false
                 }
             }

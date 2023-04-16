@@ -64,7 +64,7 @@
         </thead>
         <tbody>
         {% for location in stock_locations %}
-            <tr class="request_row" onclick="window.location.href = '/location/{{ location.location_id }}'">
+            <tr class="request_row" onclick="window.location.href = '/location/{{ location.location_id }}'" style="cursor: pointer">
                 <td class="name-col">{{ location.name }}</td>
             </tr>
         {% endfor %}

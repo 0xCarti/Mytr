@@ -85,7 +85,7 @@ def request(request_id: int):
         return render_template('authenticated/basic/requests/transfer-request.html', transfer_request=transfer_request, requested_items=requested_items)
 
 
-@app.route('/merge/<ids>', methods=['GET'])
+@app.route('/merge/<request_ids>', methods=['GET'])
 @login_required
 def merge(request_ids: str):
     request_ids = request_ids.removesuffix(":").split(":")
@@ -93,7 +93,7 @@ def merge(request_ids: str):
     na_amounts = []
     for request_id in request_ids:
         transfer_request = RequestsModel.query.filter_by(request_id=int(request_id)).first()
-        requested_items = json.loads(transfer_request.items_requested)
+        requested_items = json.loads(transfer_request.requested_items)
         for item in requested_items:
             if requested_items[item] == 'N/A':
                 na_amounts.append(item)
@@ -135,7 +135,7 @@ def item(item_id: int):
     if flask.request.method == 'POST':
         pass
     elif flask.request.method == 'GET':
-        item = LocationsModel.query.filter_by(item_id=item_id).first
+        item = ItemsModel.query.filter_by(item_id=item_id).first()
         if item:
             request_id_history = item.transfer_request_history.removesuffix(':').split(':')
             request_history = []
@@ -143,7 +143,7 @@ def item(item_id: int):
                 request = RequestsModel.query.filter_by(request_id=request_id).first()
                 if request:
                     request_history.append(request)
-            return render_template('authenticated/basic/locations/view-location.html', item=item, history=request_history)
+            return render_template('authenticated/basic/items/stock_item.html', item=item, history=request_history)
     return render_template('public/404.html')
 
 
@@ -302,10 +302,8 @@ def login():
 
     if flask.request.method == 'POST':
         employee_id = flask.request.json['employee_id']
-        print(employee_id)
         user = UserModel.query.filter_by(employee_id=int(employee_id)).first()
         if user and user.active and user.check_password(flask.request.json['password']):
-            print(user)
             login_user(user)
             return redirect(f'/profile/{employee_id}')
         else:
@@ -343,4 +341,4 @@ def get_location_name(location_id):
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=8000)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(ssl_context='adhoc', host='0.0.0.0', port=5000, debug=True)

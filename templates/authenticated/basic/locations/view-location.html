@@ -106,7 +106,7 @@
             </thead>
             <tbody>
             {% for transfer in history %}
-                <tr class="request_row">
+                <tr class="request_row" >
                     <td class="col"><a href="/request/{{ transfer.request_id }}">{{ transfer.request_id }}</a></td>
                     <td class="col"><a href="/profile/{{ transfer.employee_id }}">{{ transfer.employee_id }}</a></td>
                     <td class="col">{{ transfer.dt_created.split(' ')[0] }}</td>

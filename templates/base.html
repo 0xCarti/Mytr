@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
     <title>{% block title %}{% endblock %}</title>
     {% block style %}{% endblock %}
 </head>
@@ -26,9 +27,9 @@
     <p>Developed by Bryce Cotton, not affiliated with Centerplate Catering/Sodexo Live</p>
 </div>
 <script>
-    try{
+    try {
         document.getElementById('nav-profile').href = '/profile/' + getCookie('employee_id')
-    }catch (error){
+    } catch (error) {
         console.log(error)
     }
 </script>

@@ -1,10 +1,115 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Item{% endblock %}
+{% block style %}
+    <style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
 
-</body>
-</html>
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0 0 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            flex-direction: column;
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        button {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        tr:hover,
+        tr:focus-within {
+            background: #f2f3ff;
+            outline: none;
+        }
+
+        td > a:focus {
+            outline: 0;
+        }
+
+        col {
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        #login-form-body {
+            width: 75%;
+        }
+
+        #interactive {
+            border: 1px solid black;
+            width: 300px;
+            height: 200px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="login-form-header">
+        <h1>{{ item.name }}</h1>
+    </div>
+    <div id="login-form-body">
+        <div class="row">
+            <label for="location-input">Item Name:</label>
+            <input style="margin-bottom: 20px" type="text" id="item-input" name="item" autocomplete="off" disabled value="{{ item.name }}">
+        </div>
+    </div>
+    <div class="row">
+        <div class="nav-buttons" id="buttons">
+            <button class="primary-button" id="login-button" onclick="save_location()">Save Changes</button>
+            <button class="secondary-button" id="login-button" onclick="edit_location()">Edit Item</button>
+            <button class="submit-button" id="login-button" onclick="delete_location()">Delete Item</button>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+    </script>
+{% endblock %}

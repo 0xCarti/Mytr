@@ -57,9 +57,9 @@
         </thead>
         <tbody>
         {% for item in stock_items %}
-            <tr class="request_row">
+            <tr class="request_row" onclick="window.location.href = '/item/{{ item.item_id }}'">
                 <td class="name-col">{{ item.name }}</td>
-                <td><input type="checkbox" id="checkbox" value="{{ item.si_code }}"></td>
+                <td><input type="checkbox" id="checkbox" value="{{ item.item_id }}"></td>
             </tr>
         {% endfor %}
         </tbody>
