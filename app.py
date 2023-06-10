@@ -340,12 +340,6 @@ def get_location_name(location_id):
         return ''
 
 
-@app.after_request
-def apply_hsts(response):
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    return response
-
-
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=8000)
-    app.run(ssl_context='adhoc', host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
