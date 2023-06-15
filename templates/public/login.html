@@ -1,13 +1,13 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/global.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/stylesheets/autocom.css') }}">
-    <script type="text/javascript" src="{{ url_for('static', filename='/scripts/cookies.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', _scheme='https', filename='/stylesheets/global.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', _scheme='https', filename='/stylesheets/autocom.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', _scheme='https', filename='/scripts/cookies.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+    <script>window.jQuery || document.write('<script src="{{url_for('static', _scheme='https', filename='jquery.js') }}">\x3C/script>')</script>
     <script src="https://malsup.github.io/jquery.form.js"></script>
     <meta charset="UTF-8">
     <title>{% block title %}Login{% endblock %}</title>
