@@ -4,6 +4,7 @@ import secrets
 from datetime import datetime
 
 import flask
+from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, url_for
 from flask_login import login_required, current_user, login_user, logout_user
 from twilio.base.exceptions import TwilioRestException
@@ -21,6 +22,7 @@ with app.app_context():
     db.create_all()
 login.init_app(app)
 login.login_view = 'login'
+load_dotenv()
 client = Client(os.getenv('TWILIO_ID'), os.getenv('TWILIO_TOKEN'))
 
 
