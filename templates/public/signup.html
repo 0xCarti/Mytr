@@ -99,7 +99,7 @@
             </div>
         </div>
         <div id="login-form-footer">
-            <p style="text-align: center">Already a user?</p>
+            <p style="text-align: center" onclick="window.location.href = '/login'">Already a user?</p>
         </div>
     </div>
 </div>
@@ -107,6 +107,12 @@
     const employee_id_input = document.getElementById('employee-id-input')
     const name_input = document.getElementById('name-input')
     const password_input = document.getElementById('password-input')
+
+    $('#password-input').on('keyup', function (event) {
+        if (event.key === 'Enter' || event.keyCode === 13){
+            submit()
+        }
+    })
 
     function submit() {
         let employee_id = employee_id_input.value
