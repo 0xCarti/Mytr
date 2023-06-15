@@ -392,6 +392,18 @@ def create_tracker():
             return render_template('public/404.html')
 
 
+@app.route('/invite', methods=['POST'])
+@login_required
+def invite():
+    if flask.request.method == 'POST':
+        phone = flask.request.json['phone']
+        if phone:
+            send_notif(number=phone, msg='You have been invited to Mytr! Here is your signup link: https://transfers.brycecotton.ca/signup')
+            return redirect('/profile')
+        else:
+            return "Phone number was left blank."
+
+
 @app.route('/admin', methods=['POST', 'GET'])
 @login_required
 def admin():
@@ -496,3 +508,4 @@ def send_notif(number: str = '', msg: str = ''):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
+    #app.run()

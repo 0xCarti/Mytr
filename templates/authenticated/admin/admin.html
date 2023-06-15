@@ -22,6 +22,7 @@
     <div class="nav-buttons" id="buttons">
         <button class="primary-button" id="view-items-button" onclick="window.location.href='/trackers'">View Trackers</button>
         <button class="primary-button" id="view-items-button" onclick="window.location.href='/users'">View Users</button>
+        <button class="primary-button" id="view-items-button" onclick="invite()">Invite User</button>
         <button class="secondary-button" id="init-items-button" onclick="window.location.href='/database?func=init-items'">Load All Items</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-locs'">Load All Locations</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-dev-users'">Load Developer Users</button>
@@ -30,4 +31,27 @@
         <button class="submit-button" id="test-button" onclick="window.location.href='/test'">test [DO NOT TOUCH]</button>
     </div>
 {% endblock %}
-{% block script %}{% endblock %}
+{% block script %}
+    <script>
+        function invite() {
+            let phone = prompt("Phone Number:", "");
+            fetch("/invite", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}
