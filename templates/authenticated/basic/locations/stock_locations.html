@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Stock Items{% endblock %}
+{% block style %}
+    <style>
+        th {
+            text-align: left;
+        }
+
+        .name-col {
+            font-size: 14px;
+            padding-left: 8px;
+        }
+
+        #checkbox {
+            width: 25px;
+            height: 25px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Stock Locations</h1>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for location in stock_locations %}
+            <tr class="request_row" style="cursor: pointer">
+                <td class="name-col" onclick="window.location.href = '/location/{{ location.location_id }}'">{{ location.name }}</td>
+                <td><input type="checkbox" id="checkbox" value="{{ location.location_id }}"></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="nav-buttons" id="buttons">
+        <button class="primary-button" onclick="add_location()">Add Location</button>
+        <button class="submit-button" onclick="delete_locations()">Delete Locations</button>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function add_location() {
+            let name = prompt("Location Name:", "");
+            fetch("/locations?mode=add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name
+                }),
+            }).then(function (response) {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                console.log(text)
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+                return error
+            });
+        }
+
+        function delete_locations() {
+            const all_items = document.querySelectorAll("#checkbox");
+            let ids = ""
+            all_items.forEach(function (item) {
+                if (item.checked) {
+                    ids = ids + item.value + ":"
+                }
+            });
+            console.log("Selected Items: " + ids)
+            fetch("/locations?mode=delete", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ids: ids
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}

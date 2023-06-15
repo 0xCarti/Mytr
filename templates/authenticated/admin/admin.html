@@ -20,10 +20,14 @@
 {% block main %}
     <h1>Admin Panel</h1>
     <div class="nav-buttons" id="buttons">
+        <button class="primary-button" id="view-items-button" onclick="window.location.href='/trackers'">View Trackers</button>
         <button class="primary-button" id="view-items-button" onclick="window.location.href='/users'">View Users</button>
         <button class="secondary-button" id="init-items-button" onclick="window.location.href='/database?func=init-items'">Load All Items</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-locs'">Load All Locations</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-dev-users'">Load Developer Users</button>
+        <button class="submit-button" id="test-button" onclick="window.location.href='/database?func=backup-users'">Backup Users</button>
+        <button class="submit-button" id="test-button" onclick="window.location.href='/database?func=load-users'">Load Users</button>
+        <button class="submit-button" id="test-button" onclick="window.location.href='/test'">test [DO NOT TOUCH]</button>
     </div>
 {% endblock %}
 {% block script %}{% endblock %}

@@ -6,6 +6,9 @@
     <script type="text/javascript" src="{{ url_for('static', filename='/scripts/cookies.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+    <script src="https://malsup.github.io/jquery.form.js"></script>
     <meta charset="UTF-8">
     <title>{% block title %}Login{% endblock %}</title>
     <style>
@@ -85,12 +88,17 @@
     const password_input = document.getElementById('password-input')
     const remember_checkbox = document.getElementById('remember-me-selection')
 
+    $('#password-input').on('keyup', function (event) {
+        if (event.key === 'Enter' || event.keyCode === 13){
+            login()
+        }
+    })
+
     function login() {
         let employee_id = employee_id_input.value
         let password = password_input.value
         fetch("/login", {
             method: "POST",
-            redirect: 'follow',
             headers: {
                 "Content-Type": "application/json",
             },
@@ -103,9 +111,10 @@
                 setCookie('employee_id', employee_id, 31)
                 window.location.href = response.url
             }else{
-                console.log('response was not redirected')
-                console.log(response.text())
+                return response.text()
             }
+        }).then(function (text) {
+            console.log('Response: ' + text)
         })
     }
 </script>

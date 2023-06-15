@@ -2,42 +2,12 @@
 {% block title %}Stock Items{% endblock %}
 {% block style %}
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        table {
-            margin: 0 auto;
-            border-collapse: collapse;
-            width: 95%;
-        }
-
-        td, th {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
         th {
-            background-color: #ddd;
-        }
-
-        tr:hover,
-        tr:focus-within {
-            background: #f2f3ff;
-            outline: none;
-        }
-
-        td > a:focus {
-            outline: 0;
+            text-align: left;
         }
 
         .name-col {
             font-size: 14px;
-            padding: 0;
             padding-left: 8px;
         }
 
@@ -57,8 +27,8 @@
         </thead>
         <tbody>
         {% for item in stock_items %}
-            <tr class="request_row" onclick="window.location.href = '/item/{{ item.item_id }}'">
-                <td class="name-col">{{ item.name }}</td>
+            <tr class="request_row">
+                <td class="name-col" onclick="window.location.href = '/item/{{ item.item_id }}'">{{ item.name }}</td>
                 <td><input type="checkbox" id="checkbox" value="{{ item.item_id }}"></td>
             </tr>
         {% endfor %}

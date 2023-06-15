@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %}Create Tracker{% endblock %}
+{% block style %}
+    <style>
+        body {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #item-requested {
+            margin-bottom: 0;
+            width: 85%;
+        }
+
+        #quantity {
+            width: 15%;
+            text-align: center;
+            height: 36px;
+            border: 1px solid #ddd;
+            border-radius: 0 3px 3px 0px;
+        }
+
+        #row-inputs {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-around;
+        }
+
+        button {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="date"] {
+            font-size: 16px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <h1>Create Tracker</h1>
+    <div class="form-row">
+        <label for="name">Tracker Name:</label>
+        <div id="row-inputs">
+            <input type="text" id="name-input" name="name" placeholder="EX: Gingerale" onkeyup="suggest_item()">
+            <input inputmode="numeric" pattern="[0-9]*" type="number" id="quantity" name="quantity"
+                   placeholder="0" autocomplete="off">
+        </div>
+        <div class="autocom-box" id="autocom-item">
+        </div>
+    </div>
+    <div class="form-row">
+        <div id="row-inputs">
+            <label for="date_received">Date Received</label>
+            <label for="expiry_date">Expiry Date</label>
+        </div>
+        <div id="row-inputs">
+            <input type="date" name="date_received" id="date_received"/>
+            <input type="date" name="expiry_date" id="expiry_date"/>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="nav-buttons" id="buttons">
+            <button class="secondary-button" id="back-button" onclick="window.location.href = '/trackers'">Back</button>
+            <button class="submit-button" onclick="submit_tracker()">Submit</button>
+        </div>
+    </div>
+
+    <table class="item-table"></table>
+{% endblock %}
+{% block script %}
+    <script>
+        const itemSuggBox = document.getElementById("autocom-item");
+        const itemInput = document.getElementById("name-input");
+        const items = []
+        {% for item in stock_items %}
+            items.push("{{item.name}}")
+        {% endfor %}
+
+        function suggest_item() {
+            itemSuggBox.innerHTML = ""
+            let userData = itemInput.value;
+            let emptyArray = [];
+            if (userData) {
+                emptyArray = items.filter((data) => {
+                    if (data.toLowerCase().search(userData.toLowerCase()) !== -1) {
+                        return data
+                    }
+                });
+                showSuggestions(itemSuggBox, emptyArray);
+                let allList = itemSuggBox.querySelectorAll("li");
+                for (let i = 0; i < allList.length; i++) {
+                    allList[i].setAttribute("onclick", "select_item(this)");
+                }
+            }
+        }
+
+        function showSuggestions(element, list) {
+            stop_index = 10
+            if (list.length < 10) {
+                stop_index = list.length
+            }
+            for (let i = 0; i < stop_index; i++) {
+                let item = list[i]
+                const suggestion = document.createElement("li")
+                suggestion.innerHTML = item
+                element.appendChild(suggestion)
+            }
+        }
+
+        function select_item(element) {
+            itemInput.value = element.textContent;
+            itemInput.textContent = "" //Make this store the SI_CODE
+            itemSuggBox.innerHTML = ""
+        }
+
+        $(document).ready(function () {
+            const date = new Date().toJSON().slice(0, 10);
+            $('#date_received').val(date)
+        });
+
+        function submit_tracker() {
+            const regex = new RegExp('[0-9]{4}-[0-9]{2}-[0-9]{2}');
+            let date_received = document.getElementById('date_received').value
+            if (!regex.test(date_received)) {
+                console.log('Date received cannot be blank.')
+                return
+            }
+            let expire_date = document.getElementById('expiry_date').value
+            if (!regex.test(expire_date)) {
+                console.log('Expire date cannot be blank.')
+                return
+            }
+            let today = new Date().toJSON().slice(0, 10);
+            if (Date.parse(expire_date) < Date.parse(today)) {
+                console.log('Expire Date cannot be before today.')
+                return
+            } else if (Date.parse(expire_date) < Date.parse(date_received)) {
+                console.log('Expire Date cannot be before date received.')
+                return
+            }
+            let quantity = document.getElementById('quantity').value
+            if (quantity === '') {
+                console.log('Quantity cannot be blank or 0.')
+                return
+            }
+            let name = itemInput.value
+            if (name === '') {
+                console.log('Product name cannot be blank')
+                return
+            }
+             fetch("/create_tracker", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    date_received: date_received,
+                    expire_date: expire_date,
+                    quantity: quantity,
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}

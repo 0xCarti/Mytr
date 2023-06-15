@@ -37,6 +37,23 @@
             justify-content: space-between;
         }
 
+        #row-inputs {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: flex-start;
+        }
+
+        input[type='checkbox'] {
+            width: 40px;
+            height: 40px;
+            margin: 0;
+            appearance: none;
+            border-radius: 0px 3px 3px 0px;
+            border: 1px solid #ddd;
+        }
+
         table {
             align-items: center;
             display: flex;
@@ -46,6 +63,21 @@
         button {
             margin-left: 5px;
             margin-right: 5px;
+        }
+
+        .switch-button {
+            font-size: 12px;
+            padding: 0;
+            height: 40px;
+            width: 35%;
+        }
+
+        #enabled {
+            background-color: #f44336;
+        }
+
+        #disabled {
+            background-color: #4CAF50;
         }
 
         input[type="number"] {
@@ -109,7 +141,11 @@
             </div>
             <div class="row">
                 <label for="phone-input">Phone Number</label>
-                <input style="margin-bottom: 20px" type="text" id="phone-input" name="phone" autocomplete="off" disabled value="{{ profile_user.phone }}">
+                <div id="row-inputs">
+                    <input style="margin-bottom: 20px" type="text" id="phone-input" name="phone" autocomplete="off" disabled value="{{ profile_user.phone }}">
+                    <button class="switch-button" id="enabled" onclick="mobile_notifs('disable')">Disable Notifs</button>
+                    <button class="switch-button" id="disabled" onclick="mobile_notifs('enable')">Enable Notifs</button>
+                </div>
             </div>
             <div class="row">
                 <label for="password-input">Change Password</label>
@@ -136,6 +172,42 @@
         let phone_input = document.getElementById('phone-input')
         let pass_input = document.getElementById('password-input')
 
+        $(document).ready(function () {
+            if ('{{ profile_user.enable_mobile_notifications }}' === 'False') {
+                $('#enabled').hide()
+                $('#disabled').show()
+            } else {
+                $('#disabled').hide()
+                $('#enabled').show()
+            }
+        });
+
+        function mobile_notifs(option) {
+            if (option === 'enable') {
+                let phone = phone_input.value
+                if (phone === '') {
+                    console.log('Phone Number cannot be blank.')
+                    return
+                }
+            }
+            fetch("/mobile_notif/" + employee_id_input.value, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    option: option,
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
 
         function save_user() {
             let profile_id = employee_id_input.value
@@ -152,6 +224,9 @@
                 let email = email_input.value
                 email_input.disabled = true
                 let phone = phone_input.value
+                if (phone === ''){
+                    mobile_notifs('disable')
+                }
                 phone_input.disabled = true
                 let password = pass_input.value;
 

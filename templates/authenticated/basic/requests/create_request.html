@@ -245,7 +245,6 @@
             for (let i = 0; i < listItems.length; i++) {
                 items_requested[listItems[i].textContent] = listAmounts[i].textContent
             }
-            console.log("items_requested = " + items_requested)
             itemTable.innerHTML = '';
 
             fetch("/requests", {
@@ -258,18 +257,15 @@
                     location: location,
                     items_requested: items_requested,
                 }),
-            })
-                .then(function (response) {
+            }).then(function (response) {
                     if (!response.ok) {
                         throw Error(response.statusText);
+                    }else if (response.redirected){
+                        window.location.href = response.url
                     }
-                })
-                .then(function (data) {
-                    console.log("Returned Request Data: " + data);
-                })
-                .catch(function (error) {
+            }).catch(function (error) {
                     console.log("Returned Request Error: " + error);
-                });
+            });
         }
     </script>
 {% endblock %}

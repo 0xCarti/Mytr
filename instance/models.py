@@ -1,3 +1,4 @@
+import json
 import random
 from datetime import datetime
 
@@ -21,6 +22,7 @@ class UserModel(UserMixin, db.Model):
     email = db.Column(db.String(80), unique=False)
     phone = db.Column(db.String(80), unique=False)
     phone_verification_date = db.Column(db.String(80), unique=False)
+    enable_mobile_notifications = db.Column(db.Boolean, default=False, unique=False)
     name = db.Column(db.String(100), unique=True)
     password_hash = db.Column(db.String(), unique=False)
     user_type = db.Column(db.String(), default='user', unique=False)
@@ -28,8 +30,11 @@ class UserModel(UserMixin, db.Model):
     transfer_request_history = db.Column(db.String(), default='', unique=False)
     last_login = db.Column(db.String(80), unique=False)
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+    def set_password(self, password, use_hash=True):
+        if use_hash:
+            self.password_hash = generate_password_hash(password)
+        else:
+            self.password_hash = password
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -52,6 +57,10 @@ class UserModel(UserMixin, db.Model):
         except TwilioRestException:
             print(f'Failed to send code to {self.phone}')
             return None
+
+    def to_json(self):
+        return json.dumps({"employee_id": self.employee_id, "name": self.name, "hash": self.password_hash, "user_type": self.user_type})
+
 
 
 @login.user_loader
@@ -88,8 +97,34 @@ class ItemsModel(db.Model):
     __tablename__ = 'items'
 
     item_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80), unique=False)
+    name = db.Column(db.String(80), unique=True)
     transfer_request_history = db.Column(db.String(), default='')
 
     def get_id(self):
         return self.item_id
+
+
+class TrackersModel(db.Model):
+    __tablename__ = 'trackers'
+
+    tracker_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    employee_id = db.Column(db.Integer)
+    name = db.Column(db.String(80), unique=False)
+    quantity = db.Column(db.Integer)
+    date_received = db.Column(db.String(80))
+    expiry_date = db.Column(db.String(80))
+
+    def get_id(self):
+        return self.tracker_id
+
+class InventoryModel(db.Model):
+    __tablename__ = 'inventories'
+
+    inventory_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    location_id = db.Column(db.Integer, unique=True)
+    stock_items = db.Column(db.String(), default='')
+    chargeable_items = db.Column(db.String(), default='')
+    last_updated_date = db.Column(db.String(80))
+
+    def get_id(self):
+        return self.inventory_id

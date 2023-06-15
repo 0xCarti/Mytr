@@ -32,14 +32,6 @@
             box-sizing: border-box;
         }
 
-        table {
-            align-items: center;
-            flex-direction: column;
-            margin: 0 auto;
-            border-collapse: collapse;
-            width: 95%;
-        }
-
         button {
             margin-left: 5px;
             margin-right: 5px;
@@ -53,26 +45,6 @@
         input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
             margin: 0;
-        }
-
-        td, th {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #ddd;
-        }
-
-        tr:hover,
-        tr:focus-within {
-            background: #f2f3ff;
-            outline: none;
-        }
-
-        td > a:focus {
-            outline: 0;
         }
 
         col {
@@ -106,7 +78,7 @@
             </thead>
             <tbody>
             {% for transfer in history %}
-                <tr class="request_row" >
+                <tr class="request_row">
                     <td class="col"><a href="/request/{{ transfer.request_id }}">{{ transfer.request_id }}</a></td>
                     <td class="col"><a href="/profile/{{ transfer.employee_id }}">{{ transfer.employee_id }}</a></td>
                     <td class="col">{{ transfer.dt_created.split(' ')[0] }}</td>
@@ -125,4 +97,55 @@
         </div>
     </div>
 {% endblock %}
-{% block script %}{% endblock %}
+{% block script %}
+    <script>
+        function edit_location() {
+            let location_input = document.getElementById('location-input')
+            location_input.disabled = false
+        }
+
+        function save_location() {
+            let location_input = document.getElementById('location-input')
+            let name = location_input.value
+            if (name === '') {
+                console.log('Name cannot be blank.')
+                return
+            }
+            location_input.disabled = true
+            fetch("/location/{{ location.location_id }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+
+        function delete_location() {
+            fetch("/locations?mode=delete&ids={{ location.location_id }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}

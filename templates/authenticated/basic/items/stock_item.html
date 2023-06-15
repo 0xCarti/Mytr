@@ -9,7 +9,7 @@
             font-size: 16px;
         }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             border-radius: 3px 0 0 3px;
@@ -32,47 +32,9 @@
             box-sizing: border-box;
         }
 
-        table {
-            align-items: center;
-            flex-direction: column;
-            margin: 0 auto;
-            border-collapse: collapse;
-            width: 95%;
-        }
-
         button {
             margin-left: 5px;
             margin-right: 5px;
-        }
-
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        td, th {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #ddd;
-        }
-
-        tr:hover,
-        tr:focus-within {
-            background: #f2f3ff;
-            outline: none;
-        }
-
-        td > a:focus {
-            outline: 0;
         }
 
         col {
@@ -83,12 +45,6 @@
         #login-form-body {
             width: 75%;
         }
-
-        #interactive {
-            border: 1px solid black;
-            width: 300px;
-            height: 200px;
-        }
     </style>
 {% endblock %}
 {% block main %}
@@ -97,19 +53,89 @@
     </div>
     <div id="login-form-body">
         <div class="row">
-            <label for="location-input">Item Name:</label>
-            <input style="margin-bottom: 20px" type="text" id="item-input" name="item" autocomplete="off" disabled value="{{ item.name }}">
+            <label for="name-input">Item Name:</label>
+            <input style="margin-bottom: 20px" type="text" id="name-input" name="name" autocomplete="off" disabled value="{{ item.name }}">
         </div>
     </div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Archived</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transfer in history %}
+            <tr class="request_row">
+                <td class="col"><a href="/request/{{ transfer.request_id }}">{{ transfer.request_id }}</a></td>
+                <td class="col"><a href="/profile/{{ transfer.employee_id }}">{{ transfer.employee_id }}</a></td>
+                <td class="col">{{ transfer.dt_created.split(' ')[0] }}</td>
+                <td class="col">{{ transfer.dt_created.split(' ')[1] }}</td>
+                <td class="col">{{ transfer.archived }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
     <div class="row">
         <div class="nav-buttons" id="buttons">
-            <button class="primary-button" id="login-button" onclick="save_location()">Save Changes</button>
-            <button class="secondary-button" id="login-button" onclick="edit_location()">Edit Item</button>
-            <button class="submit-button" id="login-button" onclick="delete_location()">Delete Item</button>
+            <button class="primary-button" id="login-button" onclick="save_item()">Save Changes</button>
+            <button class="secondary-button" id="login-button" onclick="edit_item()">Edit Item</button>
+            <button class="submit-button" id="login-button" onclick="delete_item()">Delete Item</button>
         </div>
     </div>
 {% endblock %}
 {% block script %}
     <script>
+        function edit_item() {
+            let name_input = document.getElementById('name-input')
+            name_input.disabled = false
+        }
+
+        function save_item() {
+            let name_input = document.getElementById('name-input')
+            let name = name_input.value
+            if (name === '') {
+                console.log('Name cannot be blank.')
+                return
+            }
+            name_input.disabled = true
+            fetch("/item/{{ item.item_id }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+
+        function delete_item() {
+            fetch("/items?mode=delete&ids={{ item.item_id }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    window.location.href = response.url
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
     </script>
 {% endblock %}
