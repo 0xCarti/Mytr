@@ -1,32 +1,29 @@
 {% extends 'base.html' %}
-{% block head %}
-    <script src="https://unpkg.com/html5-qrcode"></script>{% endblock %}
-{% block title %}Test{% endblock %}
-{% block style %}
-    <style>
-        #row-inputs {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-    </style>
-{% endblock %}
+{% block head %}{% endblock %}
+{% block title %}Title{% endblock %}
+{% block style %}{% endblock %}
 {% block main %}
-    <div id="row-inputs">
-        <label for="barcode">Barcode:</label>
-        <input type="text" id="barcode" name="barcode" placeholder="" disabled>
+    <button class="primary-button" id="send-msg-button" onclick="send_msg()">Login</button>
+    <div id="messages">
+        {% for msg in msgs %}
+            <p>{{ msg }}</p>
+        {% endfor %}
     </div>
-    <div id="qr-reader"></div>
 {% endblock %}
 {% block script %}
     <script>
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log(`Code scanned = ${decodedText}`, decodedResult);
-        }
+        var socket = io();
 
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", {fps: 10, qrbox: 250});
-        html5QrcodeScanner.render(onScanSuccess);
+        socket.on('msg_received', function (msg) {
+            const message = document.createElement("p")
+            message.innerHTML = msg
+            document.getElementById('messages').appendChild(message)
+        });
+
+
+        function send_msg() {
+            let msg = window.prompt('Enter Message')
+            socket.emit('test', msg);
+        }
     </script>
 {% endblock %}

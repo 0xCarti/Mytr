@@ -108,6 +108,11 @@
     <script>
         apply_view_user_filter()
 
+        var socket = io();
+        socket.on('new_user', function () {
+            window.location.href = "/users"
+        });
+
         function apply_view_user_filter() {
             const view_user_filter = document.getElementById('view-user-filter')
             let view_filter = view_user_filter.value

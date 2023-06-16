@@ -129,17 +129,17 @@
                 name: name,
                 password: password
             }),
-        })
-            .then(function (response) {
+        }).then(function (response) {
                 if (response.redirected) {
                     document.location.href = response.url
                 } else {
-                    alert('Talk to bryce, something failed here.')
+                    return response.text()
                 }
-            })
-            .catch(function (error) {
-                return error
-            });
+        }).then(function (text) {
+            console.log(text)
+        }).catch(function (error) {
+            return error
+        });
     }
 </script>
 </body>

@@ -1,6 +1,5 @@
 import json
 import os
-import secrets
 from datetime import datetime
 
 import flask
@@ -11,12 +10,15 @@ from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 from data_handler.pdf_handler import pdf_handler
 from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel
+from flask_socketio import SocketIO, send, emit
 
 notif_numbers = []
+msgs = []
 app = Flask(__name__)
 app.secret_key = 'Smkc01002dazzxqn3'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+socketio = SocketIO(app)
 db.init_app(app)
 with app.app_context():
     db.create_all()
@@ -63,6 +65,7 @@ def requests():
         db.session.commit()
         # send out the mobile notif
         send_notif()
+        socketio.emit('request_received')
         return redirect('/')
     elif flask.request.method == 'GET':
         locations = LocationsModel.query.all()
@@ -323,7 +326,6 @@ def database():
         return redirect('/login')
 
 
-
 @app.route('/mobile_notif/<employee_id>', methods=['POST'])
 @login_required
 def mobile_notif(employee_id: int):
@@ -426,6 +428,7 @@ def signup():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+        socketio.emit('new_user')
         return redirect('/login')
     else:
         return render_template('public/signup.html')
@@ -453,7 +456,7 @@ def login():
 
 @app.route('/test', methods=['POST', 'GET'])
 def test():
-    return render_template('test.html')
+    return render_template('test.html', msgs=msgs)
 
 
 @app.route('/logout')
@@ -507,5 +510,6 @@ def send_notif(number: str = '', msg: str = ''):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
-    #app.run()
+    socketio.run(app, host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
+    # app.run()

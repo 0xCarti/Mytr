@@ -71,7 +71,7 @@
         </div>
     </div>
     <div id="col-split">
-        <table>
+        <table id="requests-table">
             <thead>
             <tr>
                 <th>Date</th>
@@ -102,9 +102,10 @@
     <script>
         apply_view_transfer_filter()
 
-        function refresh() {
+        var socket = io();
+        socket.on('request_received', function () {
             window.location.href = "/requests"
-        }
+        });
 
         function apply_view_transfer_filter() {
             const view_transfer_filter = document.getElementById('view-transfer-filter')
@@ -117,9 +118,9 @@
                 } else if (view_filter === "archived") {
                     rows[i].hidden = rows[i].id !== "archived-True";
                 } else {
-                    if (rows[i].id === "archived-False"){
+                    if (rows[i].id === "archived-False") {
                         rows[i].style.backgroundColor = 'darkseagreen'
-                    }else{
+                    } else {
                         rows[i].style.backgroundColor = 'indianred'
                     }
                     rows[i].hidden = false
