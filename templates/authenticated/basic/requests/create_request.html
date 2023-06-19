@@ -220,20 +220,18 @@
         function submit_request() {
             let employee_id = document.getElementById("employee-id").value
             if (employee_id === "") {
-                console.log("EmployeeID cannot be empty.")
+                failure_popup('EmployeeID cannot be empty.')
                 return
             }
             let location = locInput.value;
             if (location === "") {
-                console.log("Location cannot be empty.")
+                failure_popup('Location cannot be empty.')
                 return
             }
-            locInput.value = ""
             let amount = requestAmount.value;
             if (amount === "") {
                 amount = "N/A"
             }
-            requestAmount.value = "";
             const item_requested = document.getElementById("item-requested").value
             let items_requested = {};
             if (item_requested !== "") {
@@ -245,7 +243,6 @@
             for (let i = 0; i < listItems.length; i++) {
                 items_requested[listItems[i].textContent] = listAmounts[i].textContent
             }
-            itemTable.innerHTML = '';
 
             fetch("/requests", {
                 method: "POST",
@@ -260,9 +257,19 @@
             }).then(function (response) {
                     if (!response.ok) {
                         throw Error(response.statusText);
-                    }else if (response.redirected){
-                        window.location.href = response.url
+                    }else{
+                        return response.text()
                     }
+            }).then(function (text) {
+                if (text.includes('FAIL:')){
+                    text = text.replace('FAIL:', '')
+                    failure_popup(text)
+                }else{
+                    success_popup(text)
+                    locInput.value = ""
+                    requestAmount.value = "";
+                    itemTable.innerHTML = '';
+                }
             }).catch(function (error) {
                     console.log("Returned Request Error: " + error);
             });

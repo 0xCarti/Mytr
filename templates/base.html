@@ -5,9 +5,11 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', _scheme='https', filename='stylesheets/global.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', _scheme='https', filename='stylesheets/autocom.css') }}">
     <script type="text/javascript" src="{{ url_for('static', _scheme='https', filename='scripts/cookies.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', _scheme='https', filename='scripts/popups.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/global.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/autocom.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/cookies.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/popups.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
@@ -21,6 +23,9 @@
     {% block style %}{% endblock %}
 </head>
 <body>
+<div class="alert-box success"></div>
+<div class="alert-box failure"></div>
+<div class="alert-box warning"></div>
 <div class="nav-row">
     <a class="nav-link" id="nav-home" href="/">Home</a>
     <a class="nav-link" id="nav-requests" href="/requests">Requests</a>

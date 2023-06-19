@@ -46,14 +46,15 @@ def requests():
         requested_items = flask.request.json['items_requested']
         # create the transfer and add it to the db
         location = LocationsModel.query.filter_by(name=location).first()
+        if not location:
+            return 'FAIL:That location does not exist.'
         transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items), dt_created=datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
         db.session.add(transfer)
         # update location with transfer ID
-        if location:
-            history = location.transfer_request_history
-            history = history + f'{transfer.request_id}:'
-            location.transfer_request_history = history
-            db.session.add(location)
+        history = location.transfer_request_history
+        history = history + f'{transfer.request_id}:'
+        location.transfer_request_history = history
+        db.session.add(location)
         # update items with transfer id
         for item_name in requested_items:
             item = ItemsModel.query.filter_by(name=item_name).first()
@@ -66,7 +67,7 @@ def requests():
         # send out the mobile notif
         send_notif()
         socketio.emit('request_received')
-        return redirect('/')
+        return 'Request Submitted'
     elif flask.request.method == 'GET':
         locations = LocationsModel.query.all()
         transfer_requests = RequestsModel.query.all()
