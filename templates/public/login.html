@@ -6,6 +6,7 @@
     <script type="text/javascript" src="{{ url_for('static', _scheme='https', filename='scripts/cookies.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/global.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/autocom.css') }}">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/cookies.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js"></script>
@@ -92,7 +93,7 @@
     const remember_checkbox = document.getElementById('remember-me-selection')
 
     $('#password-input').on('keyup', function (event) {
-        if (event.key === 'Enter' || event.keyCode === 13){
+        if (event.key === 'Enter' || event.keyCode === 13) {
             login()
         }
     })
@@ -113,7 +114,7 @@
             if (response.redirected) {
                 setCookie('employee_id', employee_id, 31)
                 window.location.href = response.url
-            }else{
+            } else {
                 return response.text()
             }
         }).then(function (text) {
