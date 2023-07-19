@@ -26,9 +26,12 @@
         <button class="secondary-button" id="init-items-button" onclick="window.location.href='/database?func=init-items'">Load All Items</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-locs'">Load All Locations</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-dev-users'">Load Developer Users</button>
-        <button class="submit-button" id="test-button" onclick="window.location.href='/database?func=backup-users'">Backup Users</button>
-        <button class="submit-button" id="test-button" onclick="window.location.href='/database?func=load-users'">Load Users</button>
-        <button class="submit-button" id="test-button" onclick="window.location.href='/test'">test [DO NOT TOUCH]</button>
+        <button class="submit-button" id="backup-users" onclick="window.location.href='/database?func=backup-users'">Backup Users</button>
+        <button class="submit-button" id="load-users" onclick="window.location.href='/database?func=load-users'">Load Users</button>
+        <form id="form" method="post" enctype=multipart/form-data action="/convert">
+            <button class="submit-button" id="test-button">test [DO NOT TOUCH]</button>
+            <input id="document" type="file" name="file" accept=".pdf">
+        </form>
     </div>
 {% endblock %}
 {% block script %}
@@ -53,5 +56,29 @@
                 console.log("Returned Request Error: " + error);
             });
         }
+
+        let form = document.getElementById('form')
+        let upload_button = document.getElementById('test-button')
+        upload_button.addEventListener('click', function (event) {
+            event.preventDefault()
+            let formdata = new FormData(form)
+            console.log(form)
+            $.ajax({
+                type: 'POST',
+                url: '/convert',
+                data: formdata,
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                success: function (data) {
+                    if (data === 'success') {
+                        success_popup(data)
+                    } else {
+                        failure_popup(data)
+                    }
+                },
+            });
+        })
     </script>
 {% endblock %}

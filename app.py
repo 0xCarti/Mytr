@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 
 import flask
+import tabula as tabula
+import tabulate
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, url_for
 from flask_login import login_required, current_user, login_user, logout_user
@@ -11,13 +13,16 @@ from twilio.rest import Client
 from data_handler.pdf_handler import pdf_handler
 from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel
 from flask_socketio import SocketIO, send, emit
+from werkzeug.utils import secure_filename
 
 notif_numbers = []
 msgs = []
+ALLOWED_EXTENSIONS = {'pdf'}
 app = Flask(__name__)
 app.secret_key = 'Smkc01002dazzxqn3'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app)
 db.init_app(app)
 with app.app_context():
@@ -459,6 +464,34 @@ def login():
 def test():
     return render_template('test.html', msgs=msgs)
 
+
+@app.route('/convert', methods=['POST', 'GET'])
+def convert():
+    library = {}
+    if flask.request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in flask.request.files:
+            return 'no file part'
+        file = flask.request.files['file']
+        if file.filename == '':
+            return 'no file name'
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            tables = tabula.io.read_pdf("static/uploads/test2.pdf", pages="all")
+            for table in tables:
+                rows = table.iterrows()
+                for row in rows:
+                    print(row[2])
+            return 'success'
+        return 'fail'
+    elif flask.request.method == 'GET':
+        return 'get'
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/logout')
 def logout():
