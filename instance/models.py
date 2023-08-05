@@ -91,6 +91,9 @@ class LocationsModel(db.Model):
     def get_id(self):
         return self.location_id
 
+    def to_json(self):
+        return json.dumps({"location_id": self.location_id, "name": self.name, "transfer_request_history": ''})
+
 
 class ItemsModel(db.Model):
     __tablename__ = 'items'
@@ -103,6 +106,9 @@ class ItemsModel(db.Model):
     def get_id(self):
         return self.item_id
 
+    def to_json(self):
+        return json.dumps({"item_id": self.item_id, "name": self.name, "transfer_request_history": '', 'transfer_unit': self.transfer_unit})
+
 
 class TransferUnitModel(db.Model):
     __tablename__ = 'transfer_units'
@@ -112,6 +118,9 @@ class TransferUnitModel(db.Model):
 
     def get_id(self):
         return self.unit_id
+
+    def to_json(self):
+        return json.dumps({"unit_id": self.unit_id, "name": self.name})
 
 
 class TrackersModel(db.Model):
@@ -126,6 +135,9 @@ class TrackersModel(db.Model):
 
     def get_id(self):
         return self.tracker_id
+
+    def to_json(self):
+        return json.dumps({"tracker_id": self.tracker_id, "employee_id": self.employee_id, 'name': self.name, 'quantity': self.quantity, 'date_received': self.date_received, 'expiry_date': self.expiry_date})
 
 
 class InventoryModel(db.Model):

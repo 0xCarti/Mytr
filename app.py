@@ -26,6 +26,12 @@ socketio = SocketIO(app)
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    user = UserModel.query.filter_by(employee_id=1061).first()
+    if not user:
+        user = UserModel(employee_id=1061, name='Bryce Cotton', user_type='admin', active=1)
+        user.set_password('Snotsuh1')
+        db.session.add(user)
+        db.session.commit()
 login.init_app(app)
 login.login_view = 'login'
 load_dotenv()
@@ -53,7 +59,8 @@ def requests():
         location = LocationsModel.query.filter_by(name=location).first()
         if not location:
             return 'FAIL:That location does not exist.'
-        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items), dt_created=datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S"))
+        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items),
+                                 dt_created=datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S"))
         db.session.add(transfer)
         # update location with transfer ID
         history = location.transfer_request_history
@@ -189,7 +196,7 @@ def locations():
             db.session.commit()
             return redirect('/locations')
         elif mode == 'delete' and current_user.user_type == 'admin':
-            location_ids = flask.request.args.get('ids').removesuffix(':').split(':')
+            location_ids = flask.request.json['ids'].removesuffix(':').split(':')
             print(location_ids)
             for location_id in location_ids:
                 location = LocationsModel.query.filter_by(location_id=location_id).first()
@@ -299,7 +306,7 @@ def profile(employee_id):
 
 @app.route('/database', methods=['POST', 'GET'])
 def database():
-    mode = flask.request.args.get('func')
+    mode = flask.request.args.get('mode')
     if mode == 'init-items':
         pdfh = pdf_handler('data_handler/stock_items_summary.pdf')
         items = pdfh.import_venue_stock_items()
@@ -327,22 +334,34 @@ def database():
             except:
                 db.session.rollback()
         return redirect('/locations')
-    if mode == 'init-dev-users':
-        print('init dev')
-        user = UserModel(employee_id=1061, name='Bryce Cotton', user_type='admin', active=1)
-        user.set_password('Snotsuh1')
-        db.session.add(user)
-        db.session.commit()
-        return redirect('/login')
-    if mode == 'backup-users':
+    if mode == 'backup':
         users = UserModel.query.filter_by(active=True)
-        with open('users.txt', 'a+') as file:
+        with open('users.txt', 'w') as file:
             for user in users:
                 jsonstr = user.to_json()
-                print(jsonstr)
                 file.write(f'{jsonstr}\n')
-        return redirect('/login')
-    if mode == 'load-users':
+        locations = LocationsModel.query.all()
+        with open('locations.txt', 'w') as file:
+            for location in locations:
+                jsonstr = location.to_json()
+                file.write(f'{jsonstr}\n')
+        items = ItemsModel.query.all()
+        with open('items.txt', 'w') as file:
+            for item in items:
+                jsonstr = item.to_json()
+                file.write(f'{jsonstr}\n')
+        units = TransferUnitModel.query.all()
+        with open('units.txt', 'w') as file:
+            for unit in units:
+                jsonstr = unit.to_json()
+                file.write(f'{jsonstr}\n')
+        trackers = TrackersModel.query.all()
+        with open('trackers.txt', 'w') as file:
+            for tracker in trackers:
+                jsonstr = tracker.to_json()
+                file.write(f'{jsonstr}\n')
+        return 'SUCCESS Backup Successful'
+    if mode == 'restore':
         with open('users.txt', 'r+') as file:
             users = [x.strip() for x in file.readlines()]
             for user in users:
@@ -358,8 +377,72 @@ def database():
                     db_user = UserModel(employee_id=employee_id, name=name, active=True, user_type=user_type)
                     db_user.set_password(password=hash, use_hash=False)
                     db.session.add(db_user)
+            file.close()
             db.session.commit()
-        return redirect('/login')
+        with open('locations.txt', 'r+') as file:
+            locations = [x.strip() for x in file.readlines()]
+            for location in locations:
+                location = json.loads(location)
+                location_id = location['location_id']
+                name = location['name']
+                transfer_request_history = location['transfer_request_history']
+                db_location = LocationsModel.query.filter_by(location_id=location_id).first()
+                if db_location:
+                    print('LOCATION EXISTS ALREADY')
+                else:
+                    db_location = LocationsModel(location_id=location_id, name=name, transfer_request_history=transfer_request_history)
+                    db.session.add(db_location)
+            file.close()
+            db.session.commit()
+        with open('items.txt', 'r+') as file:
+            items = [x.strip() for x in file.readlines()]
+            for item in items:
+                item = json.loads(item)
+                item_id = item['item_id']
+                name = item['name']
+                transfer_request_history = item['transfer_request_history']
+                transfer_unit = item['transfer_unit']
+                db_item = ItemsModel.query.filter_by(item_id=item_id).first()
+                if db_item:
+                    print('ITEM EXISTS ALREADY')
+                else:
+                    db_item = ItemsModel(item_id=item_id, name=name, transfer_request_history=transfer_request_history, transfer_unit=transfer_unit)
+                    db.session.add(db_item)
+            file.close()
+            db.session.commit()
+        with open('units.txt', 'r+') as file:
+            units = [x.strip() for x in file.readlines()]
+            for unit in units:
+                unit = json.loads(unit)
+                unit_id = unit['unit_id']
+                name = unit['name']
+                db_unit = TransferUnitModel.query.filter_by(unit_id=unit_id).first()
+                if db_unit:
+                    print('UNIT EXISTS ALREADY')
+                else:
+                    db_unit = TransferUnitModel(unit_id=unit_id, name=name)
+                    db.session.add(db_unit)
+            file.close()
+            db.session.commit()
+        with open('trackers.txt', 'r+') as file:
+            trackers = [x.strip() for x in file.readlines()]
+            for tracker in trackers:
+                tracker = json.loads(tracker)
+                tracker_id = tracker['tracker_id']
+                employee_id = tracker['employee_id']
+                name = tracker['name']
+                quantity = tracker['quantity']
+                date_received = tracker['date_received']
+                expiry_date = tracker['expiry_date']
+                db_tracker = TrackersModel.query.filter_by(tracker_id=tracker_id).first()
+                if db_tracker:
+                    print('TRACKER EXISTS ALREADY')
+                else:
+                    db_tracker = TrackersModel(tracker_id=tracker_id, employee_id=employee_id, name=name, quantity=quantity, date_received=date_received, expiry_date=expiry_date)
+                    db.session.add(db_tracker)
+            file.close()
+            db.session.commit()
+        return 'SUCCESS Successfully Restored Backup'
 
 
 @app.route('/mobile_notif/<employee_id>', methods=['POST'])
@@ -489,10 +572,31 @@ def login():
 
     return render_template('public/login.html')
 
+'''
+@app.route('/feedback', methods=['POST', 'GET'])
+def feedback():
+    if flask.request.method == 'POST':
+        user = UserModel.query.filter_by(employee_id=employee_id).first()
+        option = flask.request.json['option']
+        if user:
+            if option == 'enable':
+                user.enable_mobile_notifications = True
+            elif option == 'disable':
+                user.enable_mobile_notifications = False
+            number = user.phone
+            if number:
+                send_notif(number=number, msg=f'You have {option}d mobile notifications!')
+            db.session.add(user)
+        db.session.commit()
+        return redirect(f'/profile/{employee_id}')
+    elif flask.request.method == 'GET':
+        return render_template('public/404.html')
+'''
 
 @app.route('/test', methods=['POST', 'GET'])
 def test():
     return render_template('test.html', msgs=msgs)
+
 
 @app.route('/logout')
 def logout():

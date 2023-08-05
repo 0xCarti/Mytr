@@ -27,12 +27,8 @@
         <button class="secondary-button" id="init-items-button" onclick="window.location.href='/database?func=init-items'">Load All Items</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-locs'">Load All Locations</button>
         <button class="secondary-button" id="init-locations-button" onclick="window.location.href='/database?func=init-dev-users'">Load Developer Users</button>
-        <button class="submit-button" id="backup-users" onclick="window.location.href='/database?func=backup-users'">Backup Users</button>
-        <button class="submit-button" id="load-users" onclick="window.location.href='/database?func=load-users'">Load Users</button>
-        <form id="form" method="post" enctype=multipart/form-data action="/convert">
-            <button class="submit-button" id="test-button">test [DO NOT TOUCH]</button>
-            <input id="document" type="file" name="file" accept=".pdf">
-        </form>
+        <button class="submit-button" id="backup-users" onclick="database('backup')">Backup Database</button>
+        <button class="submit-button" id="load-users" onclick="database('restore')">Restore Database Backup</button>
     </div>
 {% endblock %}
 {% block script %}
@@ -81,5 +77,28 @@
                 },
             });
         })
+
+        function database(mode) {
+            fetch("/database?mode=" + mode, {
+                method: "POST",
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
     </script>
 {% endblock %}
