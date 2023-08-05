@@ -1,6 +1,7 @@
 from PyPDF2 import PdfReader
 import re
 
+
 class pdf_handler:
     def __init__(self, file: str):
         self.filename = file
@@ -21,6 +22,19 @@ class pdf_handler:
                     venue_stock_items.append(line)
 
         return venue_stock_items
+
+
+def import_idealpos_menu_items(self):
+    code = re.compile('SI-\d{5}-\d{6}\s')
+    suffix = re.compile('\d{6}\s\w+\s\$\d+.\d{2}')
+
+    venue_stock_items = []
+
+    for page in self.reader.pages:
+        lines = page.extract_text().split("\n")
+        for line in lines:
+            print(line)
+
 
 if __name__ == '__main__':
     pdf_handler = pdf_handler('stock_items_summary.pdf')
