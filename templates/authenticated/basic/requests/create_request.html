@@ -48,20 +48,19 @@
             width: 85%;
         }
 
-        #item-requested-amount {
+        #item-requested-amount, #unit{
             width: 15%;
             text-align: center;
-            height: 36px;
             border: 1px solid #ddd;
+        }
+
+        #unit {
             border-radius: 0 3px 3px 0px;
         }
 
         #row-inputs {
             display: flex;
-            align-items: flex-start;
             flex-direction: row;
-            flex-wrap: nowrap;
-            align-content: flex-start;
         }
 
         button {
@@ -96,8 +95,13 @@
         <label for="item-requested">Item Requested:</label>
         <div id="row-inputs">
             <input type="text" id="item-requested" name="item-requested" placeholder="EX: Gingerale" onkeyup="suggest_item()">
-            <input inputmode="numeric" pattern="[0-9]*" type="number" id="item-requested-amount" name="item-requested"
+            <input inputmode="numeric" pattern="[0-9.]*" type="number" id="item-requested-amount" name="item-requested"
                    placeholder="0" autocomplete="off">
+            <select name="unit" id="unit" class="">
+                {% for unit in transfer_units %}
+                    <option value="{{ unit.name }}" class="option">{{ unit.name|capitalize() }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="autocom-box" id="autocom-item">
         </div>
@@ -125,9 +129,10 @@
         const requestAmount = document.getElementById("item-requested-amount")
         const clearButton = document.getElementById("clear-button")
         const admin_nav = document.getElementById('nav-admin')
-        const items = []
+        const unit_input = document.getElementById('unit')
+        const items = {}
         {% for item in stock_items %}
-            items.push("{{item.name}}")
+            items[("{{item.name}}")] = "{{ item.transfer_unit }}"
         {% endfor %}
         const locs = []
         {% for location in stock_locations %}
@@ -139,7 +144,7 @@
             let userData = itemInput.value;
             let emptyArray = [];
             if (userData) {
-                emptyArray = items.filter((data) => {
+                emptyArray = Object.keys(items).filter((data) => {
                     if (data.toLowerCase().search(userData.toLowerCase()) !== -1) {
                         return data
                     }
@@ -173,6 +178,7 @@
 
         function select_item(element) {
             itemInput.value = element.textContent;
+            unit_input.value = items[element.textContent]
             itemInput.textContent = "" //Make this store the SI_CODE
             itemSuggBox.innerHTML = ""
         }
@@ -197,6 +203,7 @@
         }
 
         function add_item() {
+            let unit = unit_input.value
             const item = itemInput.value;
             let amount = requestAmount.value;
             if (amount === "") {
@@ -204,7 +211,7 @@
             }
             if (item !== "") {
                 const row = document.createElement("tr")
-                row.innerHTML = `<td class="item-col">${item}</td><td class="amount-col">${amount}<td><button class="primary-button" id="remove-button-col">Remove</button></td>`
+                row.innerHTML = `<td class="item-col">${item}</td><td class="amount-col">${amount}<td class="unit-col">${unit}<td><button class="primary-button" id="remove-button-col">Remove</button></td>`
                 itemTable.appendChild(row)
                 itemInput.value = ""
                 requestAmount.value = ""
@@ -232,16 +239,18 @@
             if (amount === "") {
                 amount = "N/A"
             }
+            let unit = unit_input.value
             const item_requested = document.getElementById("item-requested").value
             let items_requested = {};
             if (item_requested !== "") {
-                items_requested[item_requested] = amount
-                console.log("Added: " + item_requested + " - " + amount)
+                items_requested[item_requested] = [amount, unit]
+                console.log("Added: " + item_requested + " - " + amount + " " + unit)
             }
             const listItems = document.querySelectorAll(".item-col");
             const listAmounts = document.querySelectorAll(".amount-col");
+            const listUnits = document.querySelectorAll(".unit-col");
             for (let i = 0; i < listItems.length; i++) {
-                items_requested[listItems[i].textContent] = listAmounts[i].textContent
+                items_requested[listItems[i].textContent] = [listAmounts[i].textContent, listUnits[i].textContent]
             }
 
             fetch("/requests", {
@@ -255,23 +264,23 @@
                     items_requested: items_requested,
                 }),
             }).then(function (response) {
-                    if (!response.ok) {
-                        throw Error(response.statusText);
-                    }else{
-                        return response.text()
-                    }
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else {
+                    return response.text()
+                }
             }).then(function (text) {
-                if (text.includes('FAIL:')){
+                if (text.includes('FAIL:')) {
                     text = text.replace('FAIL:', '')
                     failure_popup(text)
-                }else{
+                } else {
                     success_popup(text)
                     locInput.value = ""
                     requestAmount.value = "";
                     itemTable.innerHTML = '';
                 }
             }).catch(function (error) {
-                    console.log("Returned Request Error: " + error);
+                console.log("Returned Request Error: " + error);
             });
         }
     </script>

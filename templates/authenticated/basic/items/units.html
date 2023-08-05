@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Stock Locations{% endblock %}
+{% block title %}Units{% endblock %}
 {% block style %}
     <style>
         th {
@@ -18,7 +18,7 @@
     </style>
 {% endblock %}
 {% block main %}
-    <h1>Stock Locations</h1>
+    <h1>Units</h1>
     <table>
         <thead>
         <tr>
@@ -26,24 +26,24 @@
         </tr>
         </thead>
         <tbody>
-        {% for location in stock_locations %}
+        {% for unit in units %}
             <tr class="request_row" style="cursor: pointer">
-                <td class="name-col" onclick="window.location.href = '/location/{{ location.location_id }}'">{{ location.name }}</td>
-                <td><input type="checkbox" id="checkbox" value="{{ location.location_id }}"></td>
+                <td class="name-col" onclick="console.log(this.target.parent.children[1])">{{ unit.name }}</td>
+                <td><input type="checkbox" id="checkbox" value="{{ unit.unit_id }}"></td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
     <div class="nav-buttons" id="buttons">
-        <button class="primary-button" onclick="add_location()">Add Location</button>
-        <button class="submit-button" onclick="delete_locations()">Delete Locations</button>
+        <button class="primary-button" onclick="add_unit()">Add Unit</button>
+        <button class="submit-button" onclick="delete_unit()">Delete Unit</button>
     </div>
 {% endblock %}
 {% block script %}
     <script>
-        function add_location() {
-            let name = prompt("Location Name:", "");
-            fetch("/locations?mode=add", {
+        function add_unit() {
+            let name = prompt("Unit Name:", "");
+            fetch("/units?mode=add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -52,20 +52,26 @@
                     name: name
                 }),
             }).then(function (response) {
-                if (response.redirected) {
-                    window.location.href = response.url;
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
                 } else {
                     return response.text()
                 }
             }).then(function (text) {
-                console.log(text)
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
             }).catch(function (error) {
                 console.log("Returned Request Error: " + error);
-                return error
             });
         }
 
-        function delete_locations() {
+        function delete_unit() {
             const all_items = document.querySelectorAll("#checkbox");
             let ids = ""
             all_items.forEach(function (item) {
@@ -73,8 +79,7 @@
                     ids = ids + item.value + ":"
                 }
             });
-            console.log("Selected Items: " + ids)
-            fetch("/locations?mode=delete", {
+            fetch("/units?mode=delete", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

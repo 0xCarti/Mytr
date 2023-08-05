@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Request Login{% endblock %}
+{% block title %}{{ location.name }}{% endblock %}
 {% block style %}
     <style>
         label {
@@ -141,7 +141,16 @@
                 if (!response.ok) {
                     throw Error(response.statusText);
                 } else if (response.redirected) {
-                    window.location.href = response.url
+                    return window.location.href = response.url
+                }else{
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
                 }
             }).catch(function (error) {
                 console.log("Returned Request Error: " + error);

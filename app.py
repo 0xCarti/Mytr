@@ -1,7 +1,8 @@
 import json
 import os
 from datetime import datetime
-
+from zoneinfo import ZoneInfo
+import pytz
 import flask
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, url_for
@@ -9,9 +10,10 @@ from flask_login import login_required, current_user, login_user, logout_user
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 from data_handler.pdf_handler import pdf_handler
-from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel
+from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel, TransferUnitModel
 from flask_socketio import SocketIO, send, emit
 
+timezone = pytz.timezone('America/Winnipeg')
 notif_numbers = []
 msgs = []
 app = Flask(__name__)
@@ -33,7 +35,8 @@ client = Client(os.getenv('TWILIO_ID'), os.getenv('TWILIO_TOKEN'))
 def home():
     stock_items = ItemsModel.query.all()
     stock_locations = LocationsModel.query.all()
-    return render_template('authenticated/basic/requests/create_request.html', stock_items=stock_items, stock_locations=stock_locations, current_user=current_user)
+    transfer_units = TransferUnitModel.query.all()
+    return render_template('authenticated/basic/requests/create_request.html', stock_items=stock_items, stock_locations=stock_locations, current_user=current_user, transfer_units=transfer_units)
 
 
 @app.route('/requests/', methods=['POST', 'GET'])
@@ -48,7 +51,7 @@ def requests():
         location = LocationsModel.query.filter_by(name=location).first()
         if not location:
             return 'FAIL:That location does not exist.'
-        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items), dt_created=datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items), dt_created=datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S"))
         db.session.add(transfer)
         # update location with transfer ID
         history = location.transfer_request_history
@@ -147,9 +150,11 @@ def items():
 def item(item_id: int):
     if flask.request.method == 'POST':
         name = flask.request.json['name']
+        transfer_unit = flask.request.json['unit']
         item = ItemsModel.query.filter_by(item_id=item_id).first()
         if item:
             item.name = name
+            item.transfer_unit = transfer_unit
             db.session.add(item)
         db.session.commit()
         return redirect(f'/item/{item_id}')
@@ -162,7 +167,8 @@ def item(item_id: int):
                 request = RequestsModel.query.filter_by(request_id=request_id).first()
                 if request:
                     request_history.append(request)
-            return render_template('authenticated/basic/items/stock_item.html', item=item, history=request_history.__reversed__())
+            units = TransferUnitModel.query.filter(TransferUnitModel.name != item.transfer_unit).all()
+            return render_template('authenticated/basic/items/stock_item.html', item=item, history=request_history.__reversed__(), transfer_units=units)
     return render_template('public/404.html')
 
 
@@ -211,6 +217,33 @@ def location(location_id: int):
             transfers = RequestsModel.query.filter_by(location_id=location.location_id)
             return render_template('authenticated/basic/locations/stock_location.html', location=location, history=transfers)
     return render_template('public/404.html')
+
+
+@app.route('/units', methods=['POST', 'GET'])
+@login_required
+def units():
+    if flask.request.method == 'POST':
+        mode = flask.request.args.get('mode')
+        if mode == 'add' and current_user.user_type == 'admin':
+            name = flask.request.json['name']
+            unit = TransferUnitModel.query.filter_by(name=name).first()
+            if unit:
+                return 'That unit already exists.'
+            unit = TransferUnitModel(name=name)
+            db.session.add(unit)
+            db.session.commit()
+            return redirect('/units')
+        elif mode == 'delete' and current_user.user_type == 'admin':
+            unit_ids = flask.request.json['ids']
+            for unit_id in unit_ids:
+                unit = TransferUnitModel.query.filter_by(unit_id=unit_id).first()
+                if unit:
+                    db.session.delete(unit)
+            db.session.commit()
+            return redirect('/units')
+    elif flask.request.method == 'GET':
+        units = TransferUnitModel.query.all()
+        return render_template('authenticated/basic/items/units.html', units=units)
 
 
 @app.route('/users', methods=['POST', 'GET'])
@@ -511,6 +544,6 @@ def send_notif(number: str = '', msg: str = ''):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=29176)
     # app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
     # app.run()

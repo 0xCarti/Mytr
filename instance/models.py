@@ -62,7 +62,6 @@ class UserModel(UserMixin, db.Model):
         return json.dumps({"employee_id": self.employee_id, "name": self.name, "hash": self.password_hash, "user_type": self.user_type})
 
 
-
 @login.user_loader
 def load_user(employee_id: int):
     return UserModel.query.get(employee_id)
@@ -99,9 +98,20 @@ class ItemsModel(db.Model):
     item_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
     name = db.Column(db.String(80), unique=True)
     transfer_request_history = db.Column(db.String(), default='')
+    transfer_unit = db.Column(db.String(80), default='Each')
 
     def get_id(self):
         return self.item_id
+
+
+class TransferUnitModel(db.Model):
+    __tablename__ = 'transfer_units'
+
+    unit_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(80), unique=True)
+
+    def get_id(self):
+        return self.unit_id
 
 
 class TrackersModel(db.Model):
@@ -116,6 +126,7 @@ class TrackersModel(db.Model):
 
     def get_id(self):
         return self.tracker_id
+
 
 class InventoryModel(db.Model):
     __tablename__ = 'inventories'

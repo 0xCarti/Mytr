@@ -9,7 +9,7 @@
             font-size: 16px;
         }
 
-        input[type="text"] {
+        input[type="text"], select {
             width: 100%;
             padding: 10px;
             border-radius: 3px 0 0 3px;
@@ -56,6 +56,15 @@
             <label for="name-input">Item Name:</label>
             <input style="margin-bottom: 20px" type="text" id="name-input" name="name" autocomplete="off" disabled value="{{ item.name }}">
         </div>
+        <div class="row">
+            <label for="unit-input">Transfer Unit:</label>
+            <select name="unit" id="unit" class="" disabled>
+                <option value="{{ item.transfer_unit }}" class="option">{{ item.transfer_unit|capitalize() }}</option>
+                {% for unit in transfer_units %}
+                    <option value="{{ unit.name }}" class="option">{{ unit.name|capitalize() }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
     <table>
         <thead>
@@ -92,16 +101,21 @@
         function edit_item() {
             let name_input = document.getElementById('name-input')
             name_input.disabled = false
+            let unit_input = document.getElementById('unit')
+            unit_input.disabled = false
         }
 
         function save_item() {
+            let unit_input = document.getElementById('unit')
             let name_input = document.getElementById('name-input')
+            let unit = unit_input.value
             let name = name_input.value
             if (name === '') {
                 console.log('Name cannot be blank.')
                 return
             }
             name_input.disabled = true
+            unit_input.disabled = false
             fetch("/item/{{ item.item_id }}", {
                 method: "POST",
                 headers: {
@@ -109,12 +123,22 @@
                 },
                 body: JSON.stringify({
                     name: name,
+                    unit: unit
                 }),
             }).then(function (response) {
                 if (!response.ok) {
                     throw Error(response.statusText);
                 } else if (response.redirected) {
-                    window.location.href = response.url
+                    return window.location.href = response.url
+                }else{
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
                 }
             }).catch(function (error) {
                 console.log("Returned Request Error: " + error);
@@ -131,7 +155,16 @@
                 if (!response.ok) {
                     throw Error(response.statusText);
                 } else if (response.redirected) {
-                    window.location.href = response.url
+                    return window.location.href = response.url
+                }else{
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
                 }
             }).catch(function (error) {
                 console.log("Returned Request Error: " + error);

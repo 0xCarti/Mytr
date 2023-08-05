@@ -68,13 +68,15 @@
         <tr>
             <th class="item-col">Item</th>
             <th class="amount-col">Amount</th>
+            <th class="unit-col">Unit</th>
         </tr>
         </thead>
         <tbody>
         {% for item in requested_items %}
             <tr class="item_row">
                 <td class="item-col">{{ item }}</td>
-                <td class="amount-col">{{ requested_items[item] }}</td>
+                <td class="amount-col">{{ requested_items[item][0] }}</td>
+                <td class="unit-col">{{ requested_items[item][1] }}</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -93,16 +95,24 @@
                 headers: {
                     "Content-Type": "application/json",
                 },
-            })
-                .then(function (response) {
-                    if (response.redirected) {
-                        window.location.href = response.url
-                    }
-                })
-                .catch(function (error) {
-                    console.log("Returned Request Error: " + error);
-                    return error
-                });
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
         }
     </script>
 {% endblock %}
