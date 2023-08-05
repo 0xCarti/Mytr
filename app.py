@@ -1,11 +1,8 @@
 import json
 import os
 from datetime import datetime
-from zoneinfo import ZoneInfo
 import pytz
 import flask
-import tabula as tabula
-import tabulate
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, url_for
 from flask_login import login_required, current_user, login_user, logout_user
@@ -496,35 +493,6 @@ def login():
 @app.route('/test', methods=['POST', 'GET'])
 def test():
     return render_template('test.html', msgs=msgs)
-
-
-@app.route('/convert', methods=['POST', 'GET'])
-def convert():
-    library = {}
-    if flask.request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in flask.request.files:
-            return 'no file part'
-        file = flask.request.files['file']
-        if file.filename == '':
-            return 'no file name'
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            tables = tabula.io.read_pdf("static/uploads/test2.pdf", pages="all")
-            for table in tables:
-                rows = table.iterrows()
-                for row in rows:
-                    print(row[2])
-            return 'success'
-        return 'fail'
-    elif flask.request.method == 'GET':
-        return 'get'
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/logout')
 def logout():
