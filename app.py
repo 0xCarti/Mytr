@@ -9,7 +9,7 @@ from flask_login import login_required, current_user, login_user, logout_user
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 from data_handler.pdf_handler import pdf_handler
-from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel, TransferUnitModel
+from instance.models import db, login, UserModel, ItemsModel, LocationsModel, RequestsModel, TrackersModel, TransferUnitModel, FeedbackModel
 from flask_socketio import SocketIO, send, emit
 from werkzeug.utils import secure_filename
 
@@ -491,7 +491,6 @@ def trackers():
 @login_required
 def create_tracker():
     if current_user.user_type == 'admin':
-        print('test')
         if flask.request.method == 'POST':
             name = flask.request.json['name']
             date_received = flask.request.json['date_received']
@@ -506,7 +505,6 @@ def create_tracker():
             stock_items = ItemsModel.query.all()
             return render_template('authenticated/basic/tools/expiry_date_tracker/create_tracker.html', stock_items=stock_items)
     else:
-        print('test 2')
         if flask.request.method == 'POST':
             return 'this route does not exist.'
         elif flask.request.method == 'GET':
@@ -572,26 +570,41 @@ def login():
 
     return render_template('public/login.html')
 
-'''
-@app.route('/feedback', methods=['POST', 'GET'])
-def feedback():
+
+@app.route('/feedback/<feedback_id>', methods=['POST', 'GET'])
+def feedback(feedback_id):
     if flask.request.method == 'POST':
-        user = UserModel.query.filter_by(employee_id=employee_id).first()
-        option = flask.request.json['option']
-        if user:
-            if option == 'enable':
-                user.enable_mobile_notifications = True
-            elif option == 'disable':
-                user.enable_mobile_notifications = False
-            number = user.phone
-            if number:
-                send_notif(number=number, msg=f'You have {option}d mobile notifications!')
-            db.session.add(user)
-        db.session.commit()
-        return redirect(f'/profile/{employee_id}')
+        pass
     elif flask.request.method == 'GET':
-        return render_template('public/404.html')
-'''
+        feedback = FeedbackModel.query.filter_by(feedback_id=feedback_id).first()
+        return render_template('authenticated/basic/feedback/feedback.html', feedback=feedback)
+
+
+@app.route('/feedbacks', methods=['POST', 'GET'])
+def feedbacks():
+    if flask.request.method == 'POST':
+        mode = flask.request.args.get('mode')
+        if mode == 'add':
+            employee_id = flask.request.json['employee_id']
+            subject = flask.request.json['subject']
+            message = flask.request.json['message']
+            date_created = datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S")
+            feedback = FeedbackModel(employee_id=employee_id, subject=subject, message=message, date_created=date_created)
+            db.session.add(feedback)
+            db.session.commit()
+            return 'SUCCESS Successfully Submitted Feedback'
+        elif mode == 'delete':
+            feedback_ids = flask.request.json['ids'].removesuffix(':').split(':')
+            for feedback_id in feedback_ids:
+                feedback = FeedbackModel.query.filter_by(feedback_id=feedback_id).first()
+                if feedback:
+                    db.session.delete(feedback)
+            db.session.commit()
+            return redirect('/feedbacks')
+    elif flask.request.method == 'GET':
+        feedbacks = FeedbackModel.query.all()
+        return render_template('authenticated/basic/feedback/feedbacks.html', feedbacks=feedbacks)
+
 
 @app.route('/test', methods=['POST', 'GET'])
 def test():

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Create Request{% endblock %}
+{% block style %}
+    <style>
+        body {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"], #message {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        button {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        h5 {
+            margin: 0;
+        }
+
+        .header-row {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div class="header-row">
+        <h5 class="date">{{ feedback.date_created.split(" ")[0] }}</h5>
+        <h5 class="time">{{ feedback.date_created.split(" ")[1] }}</h5>
+    </div>
+    <h1>Feedback - {{ feedback.employee_id }}</h1>
+    <div class="form-row">
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" autocomplete="off" value="{{ feedback.subject }}" disabled>
+    </div>
+    <div class="form-row">
+        <label for="message">Message:</label>
+        <textarea id="message" rows="10" disabled>{{ feedback.message }}</textarea>
+    </div>
+    <div class="form-row">
+        <div class="nav-buttons" id="buttons">
+            <button class="submit-button" id="submit-button" onclick="delete_feedback('{{ feedback.feedback_id }}')">Delete Feedback</button>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function delete_feedback(feedback_id) {
+            fetch("/feedbacks?mode=delete", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ids: feedback_id
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}

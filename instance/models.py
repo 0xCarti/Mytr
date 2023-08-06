@@ -140,14 +140,17 @@ class TrackersModel(db.Model):
         return json.dumps({"tracker_id": self.tracker_id, "employee_id": self.employee_id, 'name': self.name, 'quantity': self.quantity, 'date_received': self.date_received, 'expiry_date': self.expiry_date})
 
 
-class InventoryModel(db.Model):
+class FeedbackModel(db.Model):
     __tablename__ = 'inventories'
 
-    inventory_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
-    location_id = db.Column(db.Integer, unique=True)
-    stock_items = db.Column(db.String(), default='')
-    chargeable_items = db.Column(db.String(), default='')
-    last_updated_date = db.Column(db.String(80))
+    feedback_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=True)
+    employee_id = db.Column(db.Integer, default=0)
+    subject = db.Column(db.String())
+    message = db.Column(db.String(), default='')
+    date_created = db.Column(db.String(80))
 
     def get_id(self):
-        return self.inventory_id
+        return self.feedback_id
+
+    def to_json(self):
+        return json.dumps({"feedback_id": self.feedback_id, "employee_id": self.employee_id, 'subject': self.subject, 'message': self.message, 'date_created': self.date_created})

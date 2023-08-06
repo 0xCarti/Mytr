@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Create Request{% endblock %}
+{% block style %}
+    <style>
+        body {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        input[type="text"], #message {
+            width: 100%;
+            padding: 10px;
+            border-radius: 3px 0px 0px 3px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            color: #555;
+            font-size: 16px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        button {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #feebacks-view, #submit-view {
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+{% block main %}
+    <div id="feebacks-view">
+        <h1>Feedbacks</h1>
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 10%">Date</th>
+                <th colspan="2">Subject</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for feedback in feedbacks %}
+                <tr class="request_row" style="cursor: pointer">
+                    <td class="date-col" onclick="window.location.href = '/feedback/{{ feedback.feedback_id }}'">{{ feedback.date_created.split(' ')[0] }}</td>
+                    <td class="subject-col" onclick="window.location.href = '/feedback/{{ feedback.feedback_id }}'">{{ feedback.subject }}</td>
+                    <td style="width: 5%"><input type="checkbox" id="checkbox" value="{{ feedback.feedback_id }}"></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="form-row">
+            <div class="nav-buttons" id="buttons">
+                <button class="primary-button" id="view-submit-button" onclick="view_submit()">View Form</button>
+                <button class="submit-button" id="delete-button" onclick="delete_feedback()">Delete Feedbacks</button>
+            </div>
+        </div>
+    </div>
+    <div id="submit-view">
+        <h1>Submit Feedback</h1>
+        <div class="form-row">
+            <label for="employee-id">Employee ID:</label>
+            <input type="text" id="employee-id" name="employee-id" value="{{ current_user.employee_id }}" required autocomplete="off" disabled>
+        </div>
+        <div class="form-row">
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" name="subject" placeholder="EX: Add Edit Button to Transfers" autocomplete="off">
+        </div>
+        <div class="form-row">
+            <label for="message">Message:</label>
+            <textarea id="message" rows="10"></textarea>
+        </div>
+        <div class="form-row">
+            <div class="nav-buttons" id="buttons">
+                <button class="secondary-button" id="view-feedbacks-button" onclick="view_feedbacks()">View Feedbacks</button>
+                <button class="submit-button" id="submit-button" onclick="submit_feedback()">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            $('#submit-view').hide()
+        });
+
+        function view_submit() {
+            $('#feebacks-view').hide()
+            $('#submit-view').show()
+        }
+
+        function view_feedbacks() {
+            $('#submit-view').hide()
+            $('#feebacks-view').show()
+        }
+
+        function delete_feedback() {
+            const all_items = document.querySelectorAll("#checkbox");
+            let ids = ""
+            all_items.forEach(function (item) {
+                if (item.checked) {
+                    ids = ids + item.value + ":"
+                }
+            });
+            fetch("/feedbacks?mode=delete", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ids: ids
+                }),
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+
+        function submit_feedback() {
+            let employee_id = document.getElementById('employee-id').value
+            let subject = document.getElementById('subject').value
+            let message = document.getElementById('message').value
+            fetch("/feedbacks?mode=add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    employee_id: employee_id,
+                    subject: subject,
+                    message: message
+                })
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+    </script>
+{% endblock %}
