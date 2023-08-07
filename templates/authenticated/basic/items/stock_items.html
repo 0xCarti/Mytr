@@ -15,10 +15,14 @@
             width: 25px;
             height: 25px;
         }
+
+        .checkbox-col {
+            width: 10px;
+        }
     </style>
 {% endblock %}
 {% block main %}
-    <h1>Stock Items - {{ stock_items|length }}</h1>
+    <h1>Stock Items</h1>
     <table>
         <thead>
         <tr>
@@ -29,7 +33,7 @@
         {% for item in stock_items %}
             <tr class="request_row">
                 <td class="name-col" onclick="window.location.href = '/item/{{ item.item_id }}'">{{ item.name }}</td>
-                <td><input type="checkbox" id="checkbox" value="{{ item.item_id }}"></td>
+                <td class="checkbox-col"><input type="checkbox" id="checkbox" value="{{ item.item_id }}"></td>
             </tr>
         {% endfor %}
         </tbody>

@@ -51,35 +51,47 @@ def home():
 @login_required
 def requests():
     if flask.request.method == 'POST':
-        # get all the data from the transfer
-        employee_id = flask.request.json['employee_id']
-        location = flask.request.json['location']
-        requested_items = flask.request.json['items_requested']
-        # create the transfer and add it to the db
-        location = LocationsModel.query.filter_by(name=location).first()
-        if not location:
-            return 'FAIL:That location does not exist.'
-        transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items),
-                                 dt_created=datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S"))
-        db.session.add(transfer)
-        # update location with transfer ID
-        history = location.transfer_request_history
-        history = history + f'{transfer.request_id}:'
-        location.transfer_request_history = history
-        db.session.add(location)
-        # update items with transfer id
-        for item_name in requested_items:
-            item = ItemsModel.query.filter_by(name=item_name).first()
-            if item:
-                history = item.transfer_request_history
-                history = history + f'{transfer.request_id}:'
-                item.transfer_request_history = history
-                db.session.add(item)
-        db.session.commit()
-        # send out the mobile notif
-        send_notif()
-        socketio.emit('request_received')
-        return 'Request Submitted'
+        mode = flask.request.args.get('mode')
+        if mode == 'add':
+            # get all the data from the transfer
+            employee_id = flask.request.json['employee_id']
+            location = flask.request.json['location']
+            requested_items = flask.request.json['items_requested']
+            # create the transfer and add it to the db
+            location = LocationsModel.query.filter_by(name=location).first()
+            if not location:
+                return 'FAIL:That location does not exist.'
+            transfer = RequestsModel(employee_id=employee_id, location_id=location.location_id, requested_items=json.dumps(requested_items),
+                                     dt_created=datetime.now(timezone).strftime("%d/%m/%Y %H:%M:%S"))
+            db.session.add(transfer)
+            # update location with transfer ID
+            history = location.transfer_request_history
+            history = history + f'{transfer.request_id}:'
+            location.transfer_request_history = history
+            db.session.add(location)
+            # update items with transfer id
+            for item_name in requested_items:
+                item = ItemsModel.query.filter_by(name=item_name).first()
+                if item:
+                    history = item.transfer_request_history
+                    history = history + f'{transfer.request_id}:'
+                    item.transfer_request_history = history
+                    db.session.add(item)
+            db.session.commit()
+            # send out the mobile notif
+            send_notif()
+            socketio.emit('request_received')
+            return 'Request Submitted'
+        elif mode == 'delete':
+            request_id = flask.request.json['request_id']
+            request = RequestsModel.query.filter_by(request_id=request_id).first()
+            if request:
+                request.archived = True
+                db.session.add(request)
+                db.session.commit()
+                return redirect('/requests/')
+            else:
+                return 'fail'
     elif flask.request.method == 'GET':
         locations = LocationsModel.query.all()
         transfer_requests = RequestsModel.query.all()
@@ -90,14 +102,17 @@ def requests():
 @login_required
 def request(request_id: int):
     if flask.request.method == 'POST' and current_user.user_type == 'admin':
+        requested_items = flask.request.json['requested_items']
         request = RequestsModel.query.filter_by(request_id=request_id).first()
         if request:
-            request.archived = True
+            request.requested_items = json.dumps(requested_items)
             db.session.add(request)
             db.session.commit()
-            return redirect('/requests/')
+            return 'SUCCESS Successfully Updated Transfer'
         else:
-            return 'fail'
+            return 'Request Not Found'
+    elif flask.request.method == 'POST' and current_user.user_type != 'admin':
+        return 'You do not have permission to edit transfers'
     elif flask.request.method == 'GET':
         transfer_request = RequestsModel.query.filter_by(request_id=request_id).first()
         requested_items = json.loads(transfer_request.requested_items)

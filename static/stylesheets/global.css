@@ -83,13 +83,21 @@ button {
 }
 
 .item-col {
-    width: 250px;
-    overflow-wrap: anywhere;
+    padding: 0;
+    height: 35px;
+    width: 98%;
 }
 
 .amount-col {
-    width: 50px;
-    text-align: center;
+    padding: 0;
+    height: 35px;
+    width: 75px;
+}
+
+.unit-col {
+    padding: 0;
+    height: 35px;
+    width: 75px;
 }
 
 .footer {

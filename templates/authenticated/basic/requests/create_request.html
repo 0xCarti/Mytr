@@ -253,7 +253,7 @@
                 items_requested[listItems[i].textContent] = [listAmounts[i].textContent, listUnits[i].textContent]
             }
 
-            fetch("/requests", {
+            fetch("/requests?mode=add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

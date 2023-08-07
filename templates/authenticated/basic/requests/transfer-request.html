@@ -6,6 +6,10 @@
             margin-top: -10px;
         }
 
+        h2 {
+            margin-top: -20px;
+        }
+
         table {
             margin: 0 auto;
             border-collapse: collapse;
@@ -51,6 +55,18 @@
             justify-content: space-between;
             margin-bottom: 10px;
         }
+
+        input {
+            height: inherit;
+            width: inherit;
+            text-align: center;
+            margin: auto;
+            display: block;
+        }
+
+        input[disabled] {
+            color: black;
+        }
     </style>
 {% endblock %}
 {% block main %}
@@ -61,40 +77,98 @@
         {% endif %}
         <h5 class="time">{{ transfer_request.dt_created.split(" ")[1] }}</h5>
     </div>
-    <h1>Transfer Request - <a href="/location/{{ transfer_request.location_id }}">{{ transfer_request.location_id|get_location_name() }}</a></h1>
+    <h1>Transfer Request</h1>
+    <h2><a href="/location/{{ transfer_request.location_id }}">{{ transfer_request.location_id|get_location_name() }}</a></h2>
     <h3>Employee - <a href="/profile/{{ transfer_request.employee_id }}">{{ transfer_request.employee_id }}</a></h3>
     <table>
         <thead>
         <tr>
-            <th class="item-col">Item</th>
-            <th class="amount-col">Amount</th>
-            <th class="unit-col">Unit</th>
+            <th>Item</th>
+            <th>Amount</th>
+            <th>Unit</th>
         </tr>
         </thead>
         <tbody>
         {% for item in requested_items %}
             <tr class="item_row">
-                <td class="item-col">{{ item }}</td>
-                <td class="amount-col">{{ requested_items[item][0] }}</td>
-                <td class="unit-col">{{ requested_items[item][1] }}</td>
+                <td class="item-col"><input type="text" id="item" value="{{ item }}" disabled></td>
+                <td class="amount-col"><input type="text" id="amount" value="{{ requested_items[item][0] }}" disabled></td>
+                <td class="unit-col"><input type="text" id="unit" value="{{ requested_items[item][1] }}" disabled></td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
     <div class="nav-buttons" id="buttons">
         {% if not transfer_request.archived %}
+            <button onclick="edit_request()" class="secondary-button" id="edit_button">Edit Request</button>
+            <button onclick="save_request()" class="primary-button" id="save_button">Save Request</button>
             <button onclick="remove_request()" class="submit-button" id="delete_button">Remove Request</button>
         {% endif %}
     </div>
 {% endblock %}
 {% block script %}
     <script>
-        function remove_request() {
-            fetch("/request/{{ transfer_request.request_id }}", {
+        $(document).ready(function () {
+            $('#save_button').hide()
+        });
+
+        function edit_request() {
+            let inputs = document.querySelectorAll('input')
+            inputs.forEach((input) => input.disabled = false)
+            $('#edit_button').hide()
+            $('#save_button').show()
+        }
+
+        function save_request() {
+            let inputs = document.querySelectorAll('input')
+            inputs.forEach((input) => input.disabled = true)
+            $('#save_button').hide()
+            $('#edit_button').show()
+            let items_requested = {};
+            const listItems = document.querySelectorAll(".item-col");
+            const listAmounts = document.querySelectorAll(".amount-col");
+            const listUnits = document.querySelectorAll(".unit-col");
+            for (let i = 0; i < listItems.length; i++) {
+                items_requested[listItems[i].children[0].value] = [listAmounts[i].children[0].value, listUnits[i].children[0].value]
+            }
+            console.log(items_requested)
+            fetch("/request/" + {{transfer_request.request_id}}, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify({
+                    requested_items: items_requested
+                })
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw Error(response.statusText);
+                } else if (response.redirected) {
+                    return window.location.href = response.url
+                } else {
+                    return response.text()
+                }
+            }).then(function (text) {
+                if (text.startsWith('SUCCESS')) {
+                    text = text.replace('SUCCESS', '')
+                    success_popup(text)
+                } else {
+                    failure_popup(text)
+                }
+            }).catch(function (error) {
+                console.log("Returned Request Error: " + error);
+            });
+        }
+
+        function remove_request() {
+            fetch("/requests?mode=delete", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    request_id: {{transfer_request.request_id}}
+                })
             }).then(function (response) {
                 if (!response.ok) {
                     throw Error(response.statusText);

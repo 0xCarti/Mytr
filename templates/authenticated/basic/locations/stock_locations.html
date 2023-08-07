@@ -15,6 +15,10 @@
             width: 25px;
             height: 25px;
         }
+
+        .checkbox-col {
+            width: 10px;
+        }
     </style>
 {% endblock %}
 {% block main %}
@@ -29,7 +33,7 @@
         {% for location in stock_locations %}
             <tr class="request_row" style="cursor: pointer">
                 <td class="name-col" onclick="window.location.href = '/location/{{ location.location_id }}'">{{ location.name }}</td>
-                <td><input type="checkbox" id="checkbox" value="{{ location.location_id }}"></td>
+                <td class="checkbox-col"><input type="checkbox" id="checkbox" value="{{ location.location_id }}"></td>
             </tr>
         {% endfor %}
         </tbody>
@@ -87,7 +91,7 @@
                     throw Error(response.statusText);
                 } else if (response.redirected) {
                     return window.location.href = response.url
-                }else{
+                } else {
                     return response.text()
                 }
             }).then(function (text) {
